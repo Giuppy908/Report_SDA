@@ -1,0 +1,100 @@
+{
+  // =========================================================
+  // 🔧 COMPILAZIONE AUTOMATICA
+  // =========================================================
+  // Compila automaticamente il documento LaTeX ogni volta che viene salvato.
+  "latex-workshop.latex.autoBuild.run": "onSave",
+
+  // =========================================================
+  // 📖 VISUALIZZAZIONE PDF
+  // =========================================================
+  // Mostra il PDF direttamente in una nuova scheda dell’editor (non in finestra esterna).
+  "latex-workshop.view.pdf.viewer": "tab",
+
+  // =========================================================
+  // 🧱 STRUMENTO PRINCIPALE DI COMPILAZIONE
+  // =========================================================
+  // Usa 'latexmk' tramite bash, compila in modalità nonstop (senza interruzioni),
+  // salva tutti i file temporanei in /build, e copia automaticamente il PDF finale nella root del progetto.
+  "latex-workshop.latex.tools": [
+    {
+      "name": "latexmk",
+      "command": "bash",
+      "args": [
+        "-lc",
+        "cd \"$(dirname \"%DOC%\")\" && fname=\"$(basename \"%DOCFILE%\" .tex)\" && mkdir -p build && latexmk -pdf -interaction=nonstopmode -synctex=1 -file-line-error -outdir=build \"$fname.tex\" && cp \"build/$fname.pdf\" ./ && cp \"build/$fname.synctex.gz\" ./"
+      ]
+    }
+  ],
+
+  // =========================================================
+  // 🧩 RICETTE DI COMPILAZIONE
+  // =========================================================
+  // Definisce la ricetta principale che esegue latexmk → genera PDF in /build → copia in root.
+  "latex-workshop.latex.recipes": [
+    {
+      "name": "latexmk (pdf→build→copy)",
+      "tools": ["latexmk"]
+    }
+  ],
+
+  // =========================================================
+  // 🧹 PULIZIA FILE TEMPORANEI
+  // =========================================================
+  // Elimina automaticamente i file ausiliari creati da LaTeX (aux, log, ecc.)
+  // e svuota la cartella /build durante la pulizia.
+  "latex-workshop.latex.clean.fileTypes": [
+    "**/*.aux", "**/*.bbl", "**/*.bcf", "**/*.blg", "**/*.idx", "**/*.ind",
+    "**/*.lof", "**/*.log", "**/*.lot", "**/*.out", "**/*.run.xml", "**/*.toc",
+    "**/*.synctex.gz",
+    "build/**"
+  ],
+  "latex-workshop.latex.clean.subfolder.enabled": true,
+  "latex-workshop.latex.clean.enabled": true,
+
+  // =========================================================
+  // 🕶️ NASCONDI CARTELLA BUILD (senza eliminarla)
+  // =========================================================
+  // Nasconde la cartella /build dall'Explorer e dai risultati di ricerca,
+  // lasciandola comunque disponibile per compilazione e SyncTeX.
+  "files.exclude": {
+    "**/build": true,
+    // Nasconde i file SyncTeX generati (es. main.synctex.gz) pur mantenendoli presenti per la sincronizzazione
+    "**/*.synctex.gz": true
+  },
+  "search.exclude": {
+    "**/build": true,
+    // Evita che i file SyncTeX compaiano nei risultati di ricerca
+    "**/*.synctex.gz": true
+  },
+
+  // =========================================================
+  // 🔄 SINCRONIZZAZIONE TESTO ↔ PDF
+  // =========================================================
+  // Permette la sincronizzazione inversa: doppio clic sul PDF → cursore nel codice sorgente.
+  // Attiva inoltre i riferimenti incrociati (Ctrl+clic su riferimenti e citazioni).
+  "latex-workshop.view.pdf.internal.synctex.keybinding": "double-click",
+  "latex-workshop.view.pdf.ref.enabled": true,
+
+  // ➕ Aggiunte per la sincronizzazione completa
+  // 1. Cursore nel codice → evidenziazione e salto automatico nel PDF
+  "latex-workshop.synctex.afterBuild.enabled": true,
+
+  // 2. Abilita la ricerca diretta dal cursore nel codice verso il PDF (⌘ + Option + J su Mac)
+  "latex-workshop.synctex.keybinding": "command+option+j",
+
+  // =========================================================
+  // 📷 INCOLLA IMMAGINI DA CLIPBOARD (LaTeX)
+  // =========================================================
+  "pasteImage.pngpastePath": "pngpaste",
+
+  // Salva sempre nella cartella Immagini in root (partendo da /Lezioni)
+  "pasteImage.path": "${currentFileDir}/../Immagini",
+
+  "pasteImage.namePrefix": "",
+  "pasteImage.fileNamePattern": "YYYY-MM-DD-HH-mm-ss",
+  "pasteImage.showFilePathConfirmInputBox": false,
+
+  // Inserisce un path LaTeX valido dal file .tex (in /Lezioni)
+  "pasteImage.insertPattern": "\\begin{figure}[ht]\n  \\centering\n  \\includegraphics[width=0.7\\linewidth]{../Immagini/${imageFileName}}\n  \\caption{Schema di esempio}\n  \\label{fig:${imageFileNameWithoutExt}}\n\\end{figure}"
+}

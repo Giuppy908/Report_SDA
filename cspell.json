@@ -1,0 +1,18 @@
+{
+    "version": "0.2",
+    "language": "it",
+    "dictionaries": [
+        "italian"
+    ],
+    "enabledLanguageIds": [
+        "latex",
+        "tex",
+        "plaintext",
+        "markdown"
+    ],
+    "ignoreRegExpList": [
+        "/\\\\[a-zA-Z]+(\\{.*?\\})?/",   
+        "/\\$[^$]*\\$/g"                
+    ],
+    "allowCompoundWords": true
+}

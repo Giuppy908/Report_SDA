@@ -1,0 +1,60 @@
+\begin{thebibliography}{10}
+
+\bibitem{nistpqc}
+{National Institute of Standards and Technology}.
+\newblock Post-quantum cryptography.
+\newblock \url{https://csrc.nist.gov/projects/post-quantum-cryptography}, 2024.
+
+\bibitem{shor1994}
+Peter~W. Shor.
+\newblock Algorithms for quantum computation: Discrete logarithms and factoring.
+\newblock {\em Proceedings 35th Annual Symposium on Foundations of Computer Science}, 1994.
+
+\bibitem{lamport1979}
+Leslie Lamport.
+\newblock Constructing digital signatures from a one-way function.
+\newblock {\em SRI International}, 1979.
+
+\bibitem{merkle1989}
+Ralph~C. Merkle.
+\newblock A certified digital signature.
+\newblock In {\em Advances in Cryptology – CRYPTO '89}, 1989.
+
+\bibitem{rfc8391}
+Andreas H{\"u}lsing, Denis Butin, Stefan-Lukas Gazdag, Joost Rijneveld, and Aziz Mohaisen.
+\newblock Xmss: extended merkle signature scheme.
+\newblock \url{https://datatracker.ietf.org/doc/html/rfc8391}, 2018.
+\newblock RFC 8391.
+
+\bibitem{xmssdemo}
+Giuseppe Favata.
+\newblock Xmss demo web application.
+\newblock \url{https://xmss-demo.streamlit.app/}, 2026.
+\newblock Progetto personale sviluppato per il corso di Crittografia.
+
+\bibitem{streamlit}
+{Streamlit Inc.}
+\newblock Streamlit documentation.
+\newblock \url{https://docs.streamlit.io/}, 2024.
+\newblock Framework per la creazione di applicazioni web in Python.
+
+\bibitem{bernstein2009}
+Daniel~J. Bernstein, Johannes Buchmann, and Erik Dahmen.
+\newblock {\em Post-Quantum Cryptography}.
+\newblock Springer, 2009.
+
+\bibitem{wotsplus}
+Andreas H{\"u}lsing.
+\newblock W-ots+ – shorter signatures for hash-based signature schemes.
+\newblock {\em IACR Cryptology ePrint Archive}, 2013.
+
+\bibitem{nist_xmss}
+National~Institute of~Standards and Technology.
+\newblock Stateful hash-based signatures (xmss, lms), 2020.
+
+\bibitem{sphincsplus}
+Daniel~J. Bernstein, Andreas H{\"u}lsing, Johannes K{\"o}nig, et~al.
+\newblock Sphincs+: Submission to the nist post-quantum project.
+\newblock 2017.
+
+\end{thebibliography}

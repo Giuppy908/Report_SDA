@@ -1,0 +1,354 @@
+% =========================================================
+% IMPOSTAZIONI BASE / COMPILAZIONE
+% =========================================================
+% !TEX program = latexmk         % Dice all'editor di usare latexmk per compilare
+% !TEX option  = -synctex=1      % Abilita la generazione del file .synctex (sync sorgente-PDF)
+
+\documentclass[12pt,a4paper]{article} % Classe article, font 12pt, foglio A4
+
+% =========================================================
+% LINGUA, CODIFICA, FONT
+% =========================================================
+\usepackage[utf8]{inputenc}   % Permette caratteri accentati (UTF-8) con pdfLaTeX
+\usepackage[T1]{fontenc}      % Migliore gestione accenti e sillabazione
+\usepackage[italian]{babel}   % Lingua italiana (date, indice, ecc.)
+\usepackage{lmodern}          % Font Latin Modern (più completo)
+\usepackage{microtype}        % Migliora spaziatura e resa del testo
+
+% =========================================================
+% LAYOUT E STILE DI TESTO
+% =========================================================
+\usepackage[a4paper,margin=2.5cm]{geometry}  % Margini e formato pagina
+\usepackage{setspace}                        % Gestione interlinea
+\onehalfspacing                              % Imposta interlinea 1.5
+
+\usepackage{parskip}                         % Niente rientro, spazio verticale tra paragrafi
+\setlength{\parskip}{6pt plus 1pt minus 1pt} % Rifinitura dello spazio tra paragrafi
+
+\usepackage{enumitem}                        % Liste personalizzate
+\setlist{topsep=0pt, partopsep=0pt, itemsep=2pt plus 1pt minus 1pt, parsep=0pt}
+
+% =========================================================
+% GRAFICA, COLORI, FIGURE
+% =========================================================
+\usepackage{xcolor}      % Colori per testo/box
+\usepackage{graphicx}    % Inserimento immagini
+\usepackage{wrapfig}     % Permette di affiancare testo e immagini
+
+% Float e sottofigure
+\usepackage{float}       % Per posizionare figure e tabelle con opzione [H]
+\usepackage{caption}     % Personalizza le didascalie (caption) di figure/tabelle e di listings
+\usepackage{subcaption}  % Sottofigure (più immagini affiancate, ciascuna con la propria didascalia)
+
+% =========================================================
+% MATEMATICA E AMBIENTI (teoremi/definizioni)
+% =========================================================
+\usepackage{amsmath,amssymb,mathtools} % Pacchetti base per matematica
+\usepackage{amsthm} % Ambienti teoremi, definizioni, ecc.
+
+% Stile "Definizione" (titolo in grassetto, testo in corsivo)
+\newtheoremstyle{appunti}
+  {6pt}       % Spazio sopra
+  {6pt}       % Spazio sotto
+  {\itshape}  % Testo in corsivo
+  {}          % Nessun rientro
+  {\bfseries} % Titolo in grassetto
+  {.}         % Punto dopo il titolo
+  {0.5em}     % Spazio dopo il titolo
+  {}          % Vuoto
+
+\theoremstyle{appunti}
+\newtheorem{definizione}{Definizione}[section]
+
+% Stile "Esempio" (titolo grande e a capo, testo normale)
+\newtheoremstyle{esempiostyle}
+  {8pt}                                            % Spazio sopra
+  {8pt}                                            % Spazio sotto
+  {\normalfont}                                    % Testo normale (non corsivo)
+  {}                                               % Nessun rientro
+  {\bfseries\itshape\Large}                        % Titolo in corsivo+grassetto
+  {}                                               % Nessuna punteggiatura dopo il titolo
+  {1em}                                            % Spazio dopo il titolo
+  {\thmname{#1}\ \thmnumber{#2}\ \thmnote{(#3)}\\} % Va a capo dopo il titolo
+
+\theoremstyle{esempiostyle}
+\newtheorem{esempio}{Esempio}[section]
+
+% =========================================================
+% SEZIONI E INDICE
+% =========================================================
+\usepackage{titlesec} % Gestione avanzata dei titoli
+\usepackage{tocloft}  % Personalizzazione indice
+
+% Stile titoli (uniforme, solo differenza di grandezza)
+\titleformat{\section}
+  {\LARGE\bfseries}               % H1: molto grande e in grassetto
+  {\thesection.}{0.6em}{}
+
+\titleformat{\subsection}
+  {\Large\bfseries}               % H2: grande e in grassetto
+  {\thesubsection.}{0.6em}{}
+
+\titleformat{\subsubsection}
+  {\large\bfseries}               % H3: più piccolo ma coerente
+  {\thesubsubsection.}{0.6em}{}
+
+% Spaziatura prima/dopo i titoli
+\titlespacing*{\section}{0pt}{2.2ex plus .5ex}{1.2ex}
+\titlespacing*{\subsection}{0pt}{1.8ex plus .4ex}{0.9ex}
+\titlespacing*{\subsubsection}{0pt}{1.4ex plus .3ex}{0.7ex}
+
+% Profondità di numerazione e indice
+\setcounter{secnumdepth}{3}             % Numera fino a subsubsection
+\setcounter{tocdepth}{3}                % Mostra fino a subsubsection nell’indice
+\cftsetindents{subsubsection}{3em}{3em} % Rientro subsubsection nell’indice
+
+% =========================================================
+% paragraphsection (numerato)
+% =========================================================
+% Nota: aumentando tocdepth/secnumdepth a 4, abiliti numerazione e TOC anche per \paragraph.
+% Il wrapper \paragraphsection rende comodo l'uso, ma NON aggiunge voci extra oltre il comportamento di \paragraph.
+\titleformat{\paragraph}
+  {\normalsize\bfseries}            % Stile del titolo
+  {\theparagraph.}{0.6em}{}         % Numerazione + spaziatura
+
+% Spaziatura prima / dopo
+\titlespacing*{\paragraph}{0pt}{1.0ex plus .3ex}{0.7ex}
+
+% L'inserimento nell’indice richiede l'abbassamento della profondità
+\setcounter{tocdepth}{4}
+\setcounter{secnumdepth}{4}
+
+% Comando personalizzato per uso comodo
+\newcommand{\paragraphsection}[1]{%
+  \paragraph{#1}\mbox{}%
+}
+
+% =========================================================
+% ALBERI E GERARCHIE
+% =========================================================
+\usepackage{forest}          % Per disegnare alberi (es. gerarchie utenti/gruppi)
+\usepackage{tikz}            % Per grafi e disegni generici
+\usetikzlibrary{positioning} % Per posizionare i nodi (below, left=of, ecc.)
+\usetikzlibrary{arrows.meta} % Per frecce personalizzate
+\usetikzlibrary{backgrounds} % Per usare on background layer
+\usetikzlibrary{fit}
+\usetikzlibrary{calc}
+
+% =========================================================
+% BLOCCO APPUNTO (Callout)
+% =========================================================
+\usepackage[most]{tcolorbox}                                  % Box colorati
+\tcbset{colback=black!3,colframe=black!40,boxsep=4pt,arc=2pt} % Stile base
+\newtcolorbox{callout}{title=Appunto}                         % Box con titolo "Appunto"
+
+\usepackage{fancyvrb}
+
+\newenvironment{projecttree}
+  {\begin{tcolorbox}[colback=black!3,colframe=black!40,boxsep=4pt,arc=2pt]
+   \small\ttfamily
+   \begin{Verbatim}[commandchars=\\\{\}]}
+  {\end{Verbatim}
+   \end{tcolorbox}}
+
+% =========================================================
+% BLOCCO CITAZIONE (Quote)
+% =========================================================
+\renewenvironment{quote}
+  {\begin{tcolorbox}[enhanced,
+     colback=black!2,                      % Sfondo leggermente grigio (quasi bianco)
+     colframe=black!10,                    % Bordo invisibile (solo per consistenza)
+     left=6pt, right=6pt,                  % Margini interni orizzontali
+     top=4pt, bottom=4pt,                  % Margini verticali interni
+     boxrule=0pt,                          % Nessun bordo completo
+     borderline west={2pt}{0pt}{black!30}, % Linea verticale sinistra stile Notion
+     sharp corners,                        % Angoli squadrati
+     before skip=6pt, after skip=6pt]}     % Spaziatura esterna sopra e sotto
+  {\end{tcolorbox}}
+
+% =========================================================
+% CODICE (LISTINGS) + SUPPORTO JSON
+% =========================================================
+\usepackage{listings} % Per inserire codice
+
+% Stile generale per tutti i listing
+\lstset{
+  basicstyle=\ttfamily\small,
+  frame=single,
+  breaklines=true,
+  numbers=none,
+  tabsize=2,
+  captionpos=b,
+  inputencoding=utf8,
+  extendedchars=true,
+  literate=
+    {├}{{\texttt{├}}}1
+    {└}{{\texttt{└}}}1
+    {│}{{\texttt{│}}}1
+    {─}{{\texttt{─}}}1
+}
+
+% Gestione caption: rimuove "Listing X:"
+\captionsetup[lstlisting]{labelformat=empty}
+
+% Linguaggio JSON (da usare con: \begin{lstlisting}[language=json] ...)
+\lstdefinelanguage{json}{
+    basicstyle=\ttfamily\small,
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    stepnumber=1,
+    numbersep=8pt,
+    showstringspaces=false,
+    breaklines=true,
+    frame=single,
+    backgroundcolor=\color{gray!5},
+    stringstyle=\color{black},
+    morestring=[b]",
+    literate=
+     *{0}{{{\color{black}0}}}{1}
+      {1}{{{\color{black}1}}}{1}
+      {2}{{{\color{black}2}}}{1}
+      {3}{{{\color{black}3}}}{1}
+      {4}{{{\color{black}4}}}{1}
+      {5}{{{\color{black}5}}}{1}
+      {6}{{{\color{black}6}}}{1}
+      {7}{{{\color{black}7}}}{1}
+      {8}{{{\color{black}8}}}{1}
+      {9}{{{\color{black}9}}}{1}
+      {:}{{{\color{black}{:}}}}{1}
+      {,}{{{\color{black}{,}}}}{1}
+      {"}{{{\color{black}{"}}}}{1},
+}
+
+% =========================================================
+% METADATI TESINA
+% =========================================================
+\newcommand{\TitoloTesina}{Titolo del progetto}
+\newcommand{\University}{Università degli studi di Milano}
+\newcommand{\Corso}{Sicurezza nelle Architetture Data Intensive}
+\newcommand{\Docente}{Ernesto Damiani}
+\newcommand{\AnnoCorso}{I°Anno}
+\newcommand{\TrimestreCorso}{III°Trimestre}
+% Elenco studenti del gruppo (aggiungi/rimuovi righe secondo necessità)
+\newcommand{\ElencoStudenti}{%
+  \textbf{Componenti del gruppo:}\\[2pt]
+  Giuseppe Corasaniti - Matricola 84237A \\
+  Giuseppe Favata - Matricola 84231A \\
+  Matteo Toso - Matricola 85540A%
+}
+\newcommand{\AnnoAccademico}{2025/2026}
+
+% =========================================================
+% HEADER E FOOTER (SEMPLIFICATO PER TESINA)
+% =========================================================
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\setlength{\headheight}{15pt}
+\fancyhf{}
+
+% HEADER
+\fancyhead[L]{\Corso}          % sinistra: Crittografia
+\fancyhead[R]{\ChapterTitle}   % destra: nome capitolo
+
+% FOOTER
+\fancyfoot[C]{\thepage}        % numero pagina al centro
+
+% LINEE
+\renewcommand{\headrulewidth}{0.4pt}  % linea header
+\renewcommand{\footrulewidth}{0pt}  % linea footer
+
+% =========================================================
+% LINK E METADATI PDF
+% =========================================================
+\usepackage[hidelinks,pagebackref]{hyperref}
+
+\renewcommand{\refname}{Bibliografia}
+
+% =========================================================
+% MACRO CAPITOLO TESINA
+% =========================================================
+\newcommand{\ChapterTitle}{}
+
+\newcommand{\chaptersection}[2]{%
+  \clearpage
+  \renewcommand{\ChapterTitle}{#2}
+
+  % Bookmark PDF (sidebar)
+  \phantomsection
+  \pdfbookmark[1]{#1. #2}{capitolo-#1}
+
+  % Titolo capitolo
+  \section{#2}
+
+  % Reset contatori
+  \setcounter{subsection}{0}
+  \setcounter{subsubsection}{0}
+  \setcounter{paragraph}{0}
+  \setcounter{definizione}{0}
+  \setcounter{esempio}{0}
+}
+
+% =========================================================
+% INIZIO DOCUMENTO
+% =========================================================
+\begin{document}
+
+% =========================================================
+% FRONTESPIZIO
+% =========================================================
+\begin{titlepage}
+    \centering
+
+    \vspace*{2cm}
+
+    {\Large \University \par}
+    \vspace{0.5cm}
+    {\large Corso di Laurea Magistrale in Sicurezza Informatica \par}
+
+    \vspace{2cm}
+
+    {\Large \textbf{\Corso} \par}
+
+    \vspace{1cm}
+
+    {\Huge \textbf{\TitoloTesina} \par}
+
+    \vspace{2cm}
+
+    \begin{flushleft}
+        \textbf{Docente:} \Docente \\
+        \textbf{Anno:} \AnnoCorso \\
+        \textbf{Trimestre:} \TrimestreCorso \\
+        \textbf{Anno Accademico:} \AnnoAccademico
+    \end{flushleft}
+
+    \vspace{2cm}
+
+    \begin{flushright}
+        \ElencoStudenti
+    \end{flushright}
+
+    \vfill
+
+\end{titlepage}
+
+% =========================================================
+% INDICE
+% =========================================================
+\clearpage
+\tableofcontents
+
+% =========================================================
+% CONTENUTO
+% =========================================================
+\clearpage
+
+\input{Capitoli/01 - Architettura.tex}
+% \input{Capitoli/10 - Bibliografia.tex}
+
+% =========================================================
+% BIBLIOGRAFIA
+% =========================================================
+\clearpage
+
+\end{document}

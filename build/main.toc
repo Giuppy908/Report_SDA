@@ -1,0 +1,10 @@
+\babel@toc {italian}{}\relax 
+\babel@toc {italian}{}\relax 
+\contentsline {section}{\numberline {1}Architettura del sistema}{2}{section.1}%
+\contentsline {subsection}{\numberline {1.1}Ambito del sistema e integrazione con B4}{2}{subsection.1.1}%
+\contentsline {subsection}{\numberline {1.2}Pipeline di elaborazione e decisione clinica}{3}{subsection.1.2}%
+\contentsline {subsubsection}{\numberline {1.2.1}Stage 1 - Classificazione dell'urgenza con EfficientNet-B4}{3}{subsubsection.1.2.1}%
+\contentsline {subsubsection}{\numberline {1.2.2}Stage 2 - Descrizione clinica con Qwen2-VL}{3}{subsubsection.1.2.2}%
+\contentsline {subsubsection}{\numberline {1.2.3}Stage 3 - Recupero di casi clinici simili}{4}{subsubsection.1.2.3}%
+\contentsline {subsubsection}{\numberline {1.2.4}Stage 4 - Sintesi clinica con BioMistral}{4}{subsubsection.1.2.4}%
+\contentsline {subsubsection}{\numberline {1.2.5}Adaptation layer e assegnazione della priorità}{4}{subsubsection.1.2.5}%
