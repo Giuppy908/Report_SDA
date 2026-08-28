@@ -14,15 +14,15 @@
   // =========================================================
   // 🧱 STRUMENTO PRINCIPALE DI COMPILAZIONE
   // =========================================================
-  // Usa 'latexmk' tramite bash, compila in modalità nonstop (senza interruzioni),
-  // salva tutti i file temporanei in /build, e copia automaticamente il PDF finale nella root del progetto.
+  // Usa 'latexmk' tramite bash, compila partendo sempre dalla root del progetto,
+  // salva tutti i file temporanei in /.latex-build, e copia automaticamente il PDF finale nella root del progetto.
   "latex-workshop.latex.tools": [
     {
       "name": "latexmk",
       "command": "bash",
       "args": [
         "-lc",
-        "cd \"$(dirname \"%DOC%\")\" && fname=\"$(basename \"%DOCFILE%\" .tex)\" && mkdir -p build && latexmk -pdf -interaction=nonstopmode -synctex=1 -file-line-error -outdir=build \"$fname.tex\" && cp \"build/$fname.pdf\" ./ && cp \"build/$fname.synctex.gz\" ./"
+        "cd \"$(dirname \"%DOC%\")\" && while [ ! -f main.tex ] && [ \"$PWD\" != \"/\" ]; do cd ..; done && mkdir -p .latex-build && latexmk -pdf -interaction=nonstopmode -synctex=1 -file-line-error -outdir=.latex-build main.tex && cp .latex-build/main.pdf ./main.pdf"
       ]
     }
   ],
@@ -30,13 +30,15 @@
   // =========================================================
   // 🧩 RICETTE DI COMPILAZIONE
   // =========================================================
-  // Definisce la ricetta principale che esegue latexmk → genera PDF in /build → copia in root.
+  // Definisce la ricetta principale che esegue latexmk → genera PDF in /.latex-build → copia in root.
   "latex-workshop.latex.recipes": [
     {
-      "name": "latexmk (pdf→build→copy)",
+      "name": "latexmk (pdf→.latex-build→copy)",
       "tools": ["latexmk"]
     }
   ],
+
+  "latex-workshop.latex.outDir": ".latex-build",
 
   // =========================================================
   // 🧹 PULIZIA FILE TEMPORANEI
@@ -47,6 +49,7 @@
     "**/*.aux", "**/*.bbl", "**/*.bcf", "**/*.blg", "**/*.idx", "**/*.ind",
     "**/*.lof", "**/*.log", "**/*.lot", "**/*.out", "**/*.run.xml", "**/*.toc",
     "**/*.synctex.gz",
+    ".latex-build/**",
     "build/**"
   ],
   "latex-workshop.latex.clean.subfolder.enabled": true,
@@ -55,14 +58,16 @@
   // =========================================================
   // 🕶️ NASCONDI CARTELLA BUILD (senza eliminarla)
   // =========================================================
-  // Nasconde la cartella /build dall'Explorer e dai risultati di ricerca,
+  // Nasconde la cartella di output dall'Explorer e dai risultati di ricerca,
   // lasciandola comunque disponibile per compilazione e SyncTeX.
   "files.exclude": {
+    "**/.latex-build": true,
     "**/build": true,
     // Nasconde i file SyncTeX generati (es. main.synctex.gz) pur mantenendoli presenti per la sincronizzazione
     "**/*.synctex.gz": true
   },
   "search.exclude": {
+    "**/.latex-build": true,
     "**/build": true,
     // Evita che i file SyncTeX compaiano nei risultati di ricerca
     "**/*.synctex.gz": true
