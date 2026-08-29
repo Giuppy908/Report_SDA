@@ -94,16 +94,18 @@ La principale interazione con un sistema esterno durante il funzionamento operat
 DermaTriage utilizza le correzioni raccolte durante la revisione dei risultati per aggiornare nel tempo alcuni componenti della pipeline. Il processo interessa sia i prompt utilizzati dai modelli generativi sia il classificatore EfficientNet-B4, attraverso due meccanismi distinti. Nel primo caso vengono aggiornati i prompt utilizzati dai modelli, mentre nel secondo vengono aggiornati i pesi del classificatore mediante un nuovo ciclo di fine-tuning.
 
 \subsubsection{Validazione clinica e raccolta del feedback}
-Le diagnosi prodotte da DermaTriage possono essere sottoposte a revisione da parte del personale medico. La validazione consente di confermare l'esito proposto dal sistema oppure di registrare una correzione, che viene mantenuta come feedback associato alla diagnosi.
+Le diagnosi prodotte da DermaTriage possono essere sottoposte a revisione da parte del personale medico. La validazione consente di confermare l'esito proposto dal sistema oppure di registrare una correzione, mantenuta come feedback associato alla diagnosi.
 
-Gli esiti clinici validati possono essere recuperati anche attraverso l'integrazione con B4 e costituiscono la base per i meccanismi di aggiornamento del sistema. Le correzioni raccolte vengono utilizzate con criteri differenti per l'evoluzione dei prompt e per il retraining di EfficientNet-B4.
+Gli esiti validati possono essere recuperati anche attraverso l'integrazione con B4. Le correzioni registrate alimentano due meccanismi distinti: l'evoluzione dei prompt utilizza gli esempi corretti più recenti, mentre le discordanze tra l'esito del sistema e la valutazione medica vengono raccolte per il successivo retraining di EfficientNet-B4. I due meccanismi sono descritti rispettivamente nelle Sezioni~\ref{sec:evoluzione-prompt} e~\ref{sec:retraining-efficientnet}.
 
 \subsubsection{Evoluzione dei prompt}
+\label{sec:evoluzione-prompt}
 L'aggiornamento dei prompt è gestito dal componente \texttt{PromptManager}. Il sistema tiene traccia delle correzioni effettuate durante la revisione delle diagnosi. L'aggiornamento viene attivato ogni dieci correzioni e utilizza una finestra scorrevole composta dai venti esempi più recenti.
 
 Le diverse versioni vengono mantenute in modo persistente, permettendo di distinguere il prompt attualmente utilizzato da quelli prodotti in precedenza. Il meccanismo riguarda i prompt associati a Qwen2-VL e BioMistral e consente di modificarne le istruzioni mantenendo invariati i rispettivi parametri.
 
 \subsubsection{Retraining del classificatore EfficientNet-B4}
+\label{sec:retraining-efficientnet}
 Il retraining di EfficientNet-B4 viene attivato al raggiungimento di 50 correzioni associate a casi in cui l'esito prodotto dal sistema risulta discordante rispetto alla valutazione del personale medico. Il controllo viene eseguito tramite un trigger event-driven e il ciclo può essere avviato anche manualmente attraverso le funzionalità amministrative dedicate.
 
 Per costruire i dati necessari al nuovo ciclo di addestramento, DermaTriage recupera tramite B4 i consulti e le relative immagini. Ai fini del retraining vengono utilizzati file JPEG e PNG, mentre i documenti PDF sono esclusi. Le priorità cliniche validate vengono ricondotte alle classi del classificatore secondo la corrispondenza P1/P2--\texttt{HIGH}, P3--\texttt{MEDIUM} e P4--\texttt{LOW}.
@@ -112,6 +114,7 @@ Il fine-tuning interessa gli ultimi due blocchi di feature extraction e la testa
 durante l'aggiornamento.
 
 \subsubsection{Validazione tecnica e gestione delle versioni}
+\label{sec:validazione-tecnica}
 Prima che una nuova versione del classificatore sostituisca quella in uso, le sue prestazioni vengono confrontate con i valori di riferimento del modello precedente. La validazione considera in particolare la sensibilità sulla classe \texttt{HIGH}, la frequenza dei casi urgenti classificati erroneamente come \texttt{LOW} e l'accuratezza complessiva.
 
 L'aggiornamento non deve peggiorare la sensibilità sui casi \texttt{HIGH} né aumentare i falsi \texttt{LOW}; inoltre, l'accuratezza complessiva non può diminuire di oltre cinque punti percentuali rispetto al riferimento. Come baseline vengono utilizzati una sensibilità \texttt{HIGH} del $90.24\%$, un tasso di falsi \texttt{LOW} del $7.93\%$ e un'accuratezza complessiva dell'$81.74\%$.
@@ -119,3 +122,83 @@ L'aggiornamento non deve peggiorare la sensibilità sui casi \texttt{HIGH} né a
 I checkpoint prodotti dai cicli di retraining vengono conservati come versioni distinte del classificatore. È inoltre previsto un checkpoint di backup della versione attiva, utilizzabile per ripristinare il modello precedente. Il rollback automatico è previsto nel caso in cui l'accuratezza della nuova versione diminuisca di oltre il 5\% rispetto al modello attivo.
 
 Le informazioni sulle diverse versioni e sulla cronologia dei cicli di retraining vengono mantenute in modo persistente, permettendo di ricostruire gli aggiornamenti effettuati nel tempo.
+
+\subsection{Data Flow Diagram e trust boundaries}
+\label{sec:dfd-trust-boundaries}
+% Il Data Flow Diagram (DFD) rappresenta il sistema in funzione dei dati che
+% vengono acquisiti, elaborati, memorizzati e trasferiti tra i suoi componenti.
+% Nel caso di DermaTriage, questa rappresentazione consente di distinguere le
+% sorgenti esterne delle informazioni cliniche, i processi che partecipano
+% all'elaborazione, le risorse persistenti utilizzate dal sistema e i flussi
+% informativi che li collegano.
+
+% Il DFD considera sia il percorso di inferenza, dalla ricezione dei dati del
+% paziente fino alla produzione della priorità P1--P4, sia i flussi associati
+% alla validazione clinica e all'aggiornamento del sistema. Sono quindi
+% rappresentati separatamente il feedback prodotto dalla revisione medica,
+% l'evoluzione dei prompt utilizzati dai modelli generativi e il retraining
+% di EfficientNet-B4.
+
+% La rappresentazione dei flussi permette inoltre di individuare i punti in cui
+% le informazioni attraversano confini tra domini di fiducia differenti. Tali
+% confini sono rappresentati mediante trust boundaries e consentono di
+% distinguere gli scambi interni a DermaTriage dalle interazioni con soggetti
+% o sistemi esterni. Una trust boundary viene introdotta soltanto quando è
+% possibile giustificare un effettivo cambiamento del dominio di fiducia e non
+% per la sola separazione logica tra due componenti.
+
+% Gli elementi utilizzati nel diagramma sono identificati mediante la seguente
+% convenzione:
+Il Data Flow Diagram (DFD) rappresenta DermaTriage in funzione dei dati
+acquisiti, elaborati, memorizzati e trasferiti tra i suoi componenti,
+distinguendo le entità esterne, i processi interni, le risorse persistenti e
+i flussi informativi che li collegano.
+
+Il diagramma comprende sia il percorso di inferenza, dalla ricezione dei dati
+del paziente alla produzione della priorità P1--P4, sia i flussi associati
+alla validazione clinica e all'aggiornamento del sistema, mantenendo distinti
+il feedback medico, l'evoluzione dei prompt e il retraining di
+EfficientNet-B4. Sono inoltre evidenziate le trust boundaries, utilizzate per
+rappresentare i punti in cui i flussi attraversano domini di fiducia
+differenti.
+
+Gli elementi del diagramma sono identificati mediante la seguente convenzione:
+
+\begin{table}[ht]
+    \centering
+    \small
+
+    \begin{tabular}{clp{8cm}}
+        \hline
+        \textbf{Prefisso} & \textbf{Elemento} & \textbf{Significato} \\
+        \hline
+
+        E & External Entity &
+        Soggetto o sistema esterno che produce o riceve dati rispetto al
+        perimetro di DermaTriage. \\
+        \hline
+
+        P & Process &
+        Funzione interna che riceve dati, li elabora e produce un nuovo
+        risultato. \\
+        \hline
+
+        D & Data Store &
+        Risorsa persistente utilizzata per conservare dati, configurazioni o
+        artefatti necessari al funzionamento e all'aggiornamento del sistema. \\
+        \hline
+
+        F & Data Flow &
+        Trasferimento di informazioni tra entità esterne, processi e data
+        store. \\
+        \hline
+
+        TB & Trust Boundary &
+        Confine tra componenti appartenenti a domini di fiducia differenti,
+        attraversato da uno o più flussi dati. \\
+        \hline
+    \end{tabular}
+
+    \caption{Convenzioni utilizzate nel Data Flow Diagram}
+    \label{tab:dfd-legend}
+\end{table}
