@@ -1,158 +1,121 @@
 \section{Architettura del sistema}
-DermaTriage è un sistema di triage dermatologico assistito da intelligenza
-artificiale, sviluppato nell'ambito del progetto AI vs Cancer. Il sistema
-elabora immagini di lesioni cutanee inviate dai pazienti insieme a
-informazioni cliniche e demografiche, con l'obiettivo di stimare il livello
-di urgenza del caso e assegnare una priorità clinica compresa tra P1 e P4.
+DermaTriage è un sistema di triage dermatologico assistito da intelligenza artificiale, sviluppato nell'ambito del progetto AI vs Cancer. Il sistema elabora immagini di lesioni cutanee inviate dai pazienti insieme a informazioni cliniche e demografiche, con l'obiettivo di stimare il livello di urgenza del caso e assegnare una priorità clinica compresa tra P1 e P4.
 
-DermaTriage è integrato con la piattaforma B4 (Social Things), che rappresenta
-il punto di interazione con il paziente e mette a disposizione le API utilizzate
-per lo scambio dei dati relativi ai consulti, ai documenti caricati, ai risultati
-diagnostici e alle validazioni mediche. L'elaborazione diagnostica viene invece
-eseguita dal servizio DermaTriage, che espone un'applicazione FastAPI e implementa
-una pipeline di intelligenza artificiale composta da quattro stadi, seguita da
-un adaptation layer responsabile della conversione del risultato nella scala
-clinica P1-P4.
+DermaTriage è integrato con la piattaforma B4 (Social Things), che rappresenta il punto di interazione con il paziente e mette a disposizione le API utilizzate per lo scambio dei dati relativi ai consulti, ai documenti caricati, ai risultati diagnostici e alle validazioni mediche. L'elaborazione diagnostica viene invece eseguita dal servizio DermaTriage, che espone un'applicazione FastAPI e implementa una pipeline di intelligenza artificiale composta da quattro stadi, seguita da un adaptation layer responsabile della conversione del risultato nella scala clinica P1-P4.
 
 \subsection{Ambito del sistema e integrazione con B4}
-L'interazione con il paziente avviene attraverso la piattaforma B4, che
-raccoglie le informazioni necessarie per avviare il processo di triage.
-Nel flusso principale vengono acquisiti un'immagine della lesione cutanea,
-l'età del paziente, il sesso e la localizzazione anatomica della lesione.
-A questi dati possono aggiungersi informazioni relative alla sintomatologia,
-tra cui prurito, sanguinamento, crescita della lesione, cambiamenti
-morfologici e dolore.
+L'interazione con il paziente avviene attraverso la piattaforma B4, che raccoglie le informazioni necessarie per avviare il processo di triage. Nel flusso principale vengono acquisiti un'immagine della lesione cutanea, l'età del paziente, il sesso e la localizzazione anatomica della lesione. A questi dati possono aggiungersi informazioni relative alla sintomatologia, tra cui prurito, sanguinamento, crescita della lesione, cambiamenti morfologici e dolore.
 
-Una volta raccolti i dati, DermaTriage accede alle informazioni associate
-alla richiesta attraverso le API messe a disposizione da B4. Il servizio
-può recuperare le pratiche disponibili, individuare i documenti associati
-e scaricare l'immagine dermatologica necessaria all'elaborazione. Al termine
-della pipeline diagnostica, il risultato viene restituito a B4 e associato
-alla relativa richiesta di triage. La successiva validazione da parte del
-personale medico permette di ottenere un riscontro sull'esito prodotto dal
-sistema. Tali informazioni possono essere recuperate da DermaTriage e
-utilizzate come feedback per l'evoluzione dei prompt e per il retraining
-del classificatore EfficientNet-B4.
+Una volta raccolti i dati, DermaTriage accede alle informazioni associate alla richiesta attraverso le API messe a disposizione da B4. Il servizio può recuperare i consulti disponibili, individuare i documenti associati e scaricare l'immagine dermatologica necessaria all'elaborazione. Al termine della pipeline diagnostica, il risultato viene restituito a B4 e associato alla relativa richiesta di triage. La successiva validazione da parte del personale medico permette di ottenere un riscontro sull'esito prodotto dal
+sistema. Tali informazioni possono essere recuperate da DermaTriage e alimentare i meccanismi di aggiornamento del sistema, che comprendono l'evoluzione dei prompt e il retraining del classificatore EfficientNet-B4.
 
-La comunicazione tra DermaTriage e B4 avviene tramite API REST protette da
-autenticazione. L'accesso ai servizi B4 utilizza un Bearer JWT ottenuto
-tramite l'endpoint \texttt{/api/v1/auth/token}; la gestione del token è
-affidata al componente \texttt{B4Auth}, che ne esegue il rinnovo automatico
-alla scadenza. I parametri necessari all'integrazione, tra cui credenziali,
-API key e indirizzo del servizio B4, sono configurati mediante variabili
-d'ambiente dedicate.
+La comunicazione tra DermaTriage e B4 avviene tramite API REST protette da autenticazione. L'accesso ai servizi B4 utilizza un Bearer JWT ottenuto tramite l'endpoint \texttt{/api/v1/auth/token}; la gestione del token è affidata al componente \texttt{B4Auth}, che ne esegue il rinnovo automatico alla scadenza. I parametri necessari all'integrazione, tra cui credenziali, API key e indirizzo del servizio B4, sono configurati mediante variabili d'ambiente dedicate.
 
-Il flusso integrato viene avviato attraverso l'endpoint
-\texttt{POST /diagnose}, al quale viene fornito un
-\texttt{consulto\_id} come riferimento alla richiesta da elaborare.
-L'accesso a questo endpoint richiede l'header \texttt{X-API-Key}, utilizzato
-anche per le funzionalità amministrative relative alla validazione delle
-diagnosi, alla gestione dei prompt e al retraining dei modelli.
+Il flusso integrato viene avviato attraverso l'endpoint \texttt{POST /diagnose}, al quale viene fornito un \texttt{consulto\_id} come riferimento alla richiesta da elaborare. L'accesso a questo endpoint richiede l'header \texttt{X-API-Key}, utilizzato
+anche per le funzionalità amministrative relative alla validazione delle diagnosi, alla gestione dei prompt e al retraining dei modelli.
 
-Accanto al percorso integrato con B4, DermaTriage espone anche
-\texttt{POST /analyze}, che permette di avviare direttamente la pipeline
-fornendo un'immagine JPEG o PNG insieme a età, sesso e localizzazione.
-Questo secondo percorso consente quindi di utilizzare il motore diagnostico
-anche senza partire da una richiesta già presente sulla piattaforma B4.
+Accanto al percorso integrato con B4, DermaTriage espone anche \texttt{POST /analyze}, che permette di avviare direttamente la pipeline fornendo un'immagine JPEG o PNG insieme a età, sesso e localizzazione. Questo secondo percorso consente quindi di utilizzare il motore diagnostico anche senza partire da una richiesta già presente sulla piattaforma B4.
 
-Dal punto di vista architetturale, B4 e DermaTriage mantengono ruoli distinti.
-B4 gestisce l'interazione iniziale con il paziente e rende disponibili i dati
-necessari al processo di triage, mentre DermaTriage esegue l'elaborazione
-diagnostica e gestisce i meccanismi di aggiornamento dei modelli.
-L'integrazione tra i due sistemi è quindi bidirezionale e accompagna il caso
-clinico dalla fase di acquisizione fino alla restituzione e alla successiva
-validazione del risultato.
+Dal punto di vista architetturale, B4 e DermaTriage mantengono ruoli distinti. B4 gestisce l'interazione iniziale con il paziente e rende disponibili i dati necessari al processo di triage, mentre DermaTriage esegue l'elaborazione diagnostica e gestisce i meccanismi di aggiornamento dei modelli. L'integrazione tra i due sistemi è quindi bidirezionale e accompagna il caso clinico dalla fase di acquisizione fino alla restituzione e alla successiva validazione del risultato.
 
 \subsection{Pipeline di elaborazione e decisione clinica}
-L'elaborazione interna di DermaTriage segue una sequenza di quattro stadi,
-ognuno dei quali produce informazioni utilizzate nelle fasi successive.
-L'architettura combina un classificatore visuale, un modello
-vision-language, un sistema di retrieval basato su casi clinici e un modello
-linguistico specializzato in ambito medico. Il risultato ottenuto al termine
-di questi passaggi viene successivamente trasformato nella priorità clinica
-utilizzata dal sistema.
+L'elaborazione interna di DermaTriage si articola in quattro stadi che contribuiscono alla costruzione del risultato finale. L'architettura combina un classificatore visuale, un modello vision-language, un sistema di retrieval basato su casi clinici e un modello linguistico specializzato in ambito medico. Il risultato ottenuto viene successivamente trasformato nella priorità clinica utilizzata dal sistema.
 
 \subsubsection{Stage 1 - Classificazione dell'urgenza con EfficientNet-B4}
-Il primo stadio esegue una classificazione dell'immagine della lesione
-attraverso EfficientNet-B4, un modello convoluzionale sottoposto a
-fine-tuning per distinguere tre livelli di urgenza denominati
-\texttt{HIGH}, \texttt{MEDIUM} e \texttt{LOW}. L'immagine viene elaborata
-come input RGB di dimensione $380 \times 380$ pixel e il modello restituisce,
-oltre alla classe prevista, un valore di confidenza e le probabilità
+Il primo stadio esegue una classificazione dell'immagine della lesione attraverso EfficientNet-B4, un modello convoluzionale sottoposto a fine-tuning per distinguere tre livelli di urgenza denominati \texttt{HIGH}, \texttt{MEDIUM} e \texttt{LOW}. L'immagine viene elaborata come input RGB di dimensione $380 \times 380$ pixel e il modello restituisce, oltre alla classe prevista, un valore di confidenza e le probabilità
 associate alle tre classi.
 
-Per aumentare la sensibilità verso i casi considerati più urgenti,
-la classificazione \texttt{HIGH} utilizza una soglia operativa pari a
-$0.25$. Questa prima valutazione non determina direttamente la priorità
-finale P1--P4, ma costituisce una delle informazioni utilizzate nelle fasi
-successive della pipeline.
+Per aumentare la sensibilità verso i casi considerati più urgenti, la classificazione \texttt{HIGH} utilizza una soglia operativa pari a $0.25$. Questa prima valutazione non determina direttamente la priorità finale P1--P4, ma costituisce una delle informazioni utilizzate nelle fasi successive della pipeline.
 
 \subsubsection{Stage 2 - Descrizione clinica con Qwen2-VL}
-In parallelo alla classificazione dell'urgenza, l'immagine viene analizzata
-da Qwen2-VL-7B-Instruct. Il modello interpreta visivamente la lesione e
-genera una descrizione clinica testuale organizzata in cinque aspetti
-principali, relativi alla forma, ai bordi, al colore, alla texture e alla
-presenza di caratteristiche considerate sospette.
+In parallelo alla classificazione dell'urgenza, l'immagine viene analizzata da Qwen2-VL-7B-Instruct. Il modello interpreta visivamente la lesione e genera una descrizione clinica testuale organizzata in cinque aspetti principali, relativi alla forma, ai bordi, al colore, alla texture e alla presenza di caratteristiche considerate sospette.
 
-Questo passaggio trasforma quindi il contenuto visuale in una
-rappresentazione testuale strutturata. La descrizione prodotta non rappresenta
-ancora una decisione diagnostica, ma viene utilizzata come query per la fase
-di ricerca dei casi clinici simili.
+Questo passaggio trasforma quindi il contenuto visuale in una rappresentazione testuale strutturata. La descrizione prodotta non rappresenta ancora una decisione diagnostica, ma viene utilizzata come query per la fase di ricerca dei casi clinici simili.
 
 \subsubsection{Stage 3 - Recupero di casi clinici simili}
-Il terzo stadio introduce un meccanismo di Retrieval-Augmented Generation
-basato su ChromaDB. La descrizione generata da Qwen2-VL viene convertita in
-una rappresentazione vettoriale mediante il modello
-\texttt{all-MiniLM-L6-v2} e confrontata con le descrizioni presenti
-nell'indice vettoriale.
+Il terzo stadio introduce un meccanismo di Retrieval-Augmented Generation basato su ChromaDB. La descrizione generata da Qwen2-VL viene convertita in una rappresentazione vettoriale mediante il modello \texttt{all-MiniLM-L6-v2} e confrontata con le descrizioni presenti nell'indice vettoriale.
 
-La ricerca utilizza la similarità coseno e seleziona i cinque casi più
-vicini alla descrizione della lesione corrente. Per ciascun risultato vengono
-recuperate informazioni quali l'identificativo anonimizzato del paziente,
-la diagnosi associata, il livello di urgenza e il punteggio di similarità.
-In questo modo la pipeline affianca alla valutazione dell'immagine un
-riferimento a casi clinici precedenti con caratteristiche semanticamente
-simili.
+La ricerca utilizza la similarità coseno e seleziona i cinque casi più vicini alla descrizione della lesione corrente. Per ciascun risultato vengono recuperate informazioni quali l'identificativo anonimizzato del paziente, la diagnosi associata, il livello di urgenza e il punteggio di similarità. In questo modo la pipeline affianca alla valutazione dell'immagine un riferimento a casi clinici precedenti con caratteristiche semanticamente simili.
 
 \subsubsection{Stage 4 - Sintesi clinica con BioMistral}
-Le informazioni prodotte nei primi tre stadi vengono successivamente
-aggregate e fornite a BioMistral-7B insieme ai dati relativi alla
-sintomatologia del paziente. Il modello riceve quindi la classificazione
-prodotta da EfficientNet-B4, la descrizione visuale generata da Qwen2-VL
-e i casi recuperati dal sistema RAG, disponendo di un contesto più ampio
-rispetto a quello disponibile nei singoli stadi precedenti.
+Le informazioni prodotte nei primi tre stadi vengono successivamente aggregate e fornite a BioMistral-7B insieme ai dati relativi alla sintomatologia del paziente. Il modello riceve quindi la classificazione prodotta da EfficientNet-B4, la descrizione visuale generata da Qwen2-VL e i casi recuperati dal sistema RAG, disponendo di un contesto più ampio rispetto a quello disponibile nei singoli stadi precedenti.
 
-BioMistral produce una risposta strutturata contenente il livello finale di
-urgenza, la relativa confidenza, una motivazione della decisione,
-l'azione raccomandata e una possibile patologia associata. Questo risultato
-rappresenta l'uscita della componente di inferenza vera e propria e viene
-successivamente elaborato dall'adaptation layer.
+BioMistral produce una risposta strutturata contenente il livello finale di urgenza, la relativa confidenza, una motivazione della decisione, l'azione raccomandata e una possibile patologia associata. Questo risultato rappresenta l'uscita della componente di inferenza vera e propria e viene successivamente elaborato dall'adaptation layer.
 
 \subsubsection{Adaptation layer e assegnazione della priorità}
-L'adaptation layer converte il livello di urgenza prodotto dalla pipeline
-nella scala P1--P4 utilizzata per il triage. La funzione
-\texttt{map\_urgency\_to\_p\_scale()} applica una serie di regole che tengono
-conto sia della classe di urgenza sia, per i casi \texttt{HIGH}, del livello
-di confidenza ottenuto.
+L'adaptation layer converte il livello di urgenza prodotto dalla pipeline nella scala P1--P4 utilizzata per il triage. La funzione \texttt{map\_urgency\_to\_p\_scale()} applica una serie di regole che tengono conto sia della classe di urgenza sia, per i casi \texttt{HIGH}, del livello di confidenza ottenuto.
 
-Un risultato \texttt{HIGH} con confidenza superiore a $0.85$ viene associato
-alla priorità P1, con un tempo previsto di presa in carico pari a 24 ore.
-Gli altri casi \texttt{HIGH} vengono assegnati a P2 con un intervallo di
-48 ore, mentre le classi \texttt{MEDIUM} e \texttt{LOW} vengono convertite
+Un risultato \texttt{HIGH} con confidenza superiore a $0.85$ viene associato alla priorità P1, con un tempo previsto di presa in carico pari a 24 ore.
+Gli altri casi \texttt{HIGH} vengono assegnati a P2 con un intervallo di 48 ore, mentre le classi \texttt{MEDIUM} e \texttt{LOW} vengono convertite
 rispettivamente in P3, con 72 ore, e P4, con 7 giorni.
 
-L'output finale comprende quindi la priorità P1-P4, il livello di confidenza,
-lo specialista indicato e il relativo SLA. L'adaptation layer separa in questo
-modo il risultato interno prodotto dai modelli dalla rappresentazione
-utilizzata per il triage clinico.
+L'output finale comprende quindi la priorità P1-P4, il livello di confidenza, lo specialista indicato e il relativo SLA. L'adaptation layer separa in questo
+modo il risultato interno prodotto dai modelli dalla rappresentazione utilizzata per il triage clinico.
 
-La Figura~\ref{fig:architettura-dermatriage} riassume i principali componenti
-dell'architettura e il percorso seguito dalle informazioni durante
-l'elaborazione di una richiesta di triage.
+La Figura~\ref{fig:architettura-dermatriage} riassume i principali componenti dell'architettura e il percorso seguito dalle informazioni durante l'elaborazione di una richiesta di triage.
 
 \begin{figure}[ht]
   \centering
-  \includegraphics[width=0.85\linewidth]{../Immagini/Architettura del sistema.png}
+  \includegraphics[width=0.85\linewidth]{../Immagini/Architettura del sistema.jpeg}
   \caption{Architettura logica di DermaTriage e flusso principale di elaborazione}
   \label{fig:architettura-dermatriage}
 \end{figure}
+
+\subsection{Componenti persistenti, modelli e dipendenze esterne}
+Oltre ai componenti coinvolti direttamente nel flusso di inferenza,
+DermaTriage utilizza diverse risorse persistenti per conservare i dati
+necessari al funzionamento della pipeline, i modelli e le informazioni
+prodotte durante l'esecuzione. Una parte di queste risorse viene utilizzata
+durante l'elaborazione delle richieste, mentre altre supportano la gestione
+e l'aggiornamento del sistema.
+
+\subsubsection{Dataset e persistenza dei dati}
+Il dataset utilizzato dal sistema RAG è conservato localmente nel file \texttt{RAG\_dataset.csv} e contiene 2298 casi clinici derivati dal dataset
+pubblico ISIC. Le informazioni necessarie al retrieval vengono indicizzate
+in ChromaDB, il cui database vettoriale è mantenuto in modo persistente
+all'interno dell'ambiente DermaTriage.
+
+Oltre alle risorse utilizzate dal RAG, il sistema conserva localmente le diagnosi prodotte, le correzioni effettuate durante la revisione dei risultati, le versioni dei prompt e le informazioni relative alle versioni dei modelli. Questi dati vengono utilizzati dalle funzionalità amministrative e dai meccanismi di aggiornamento del sistema.
+
+Le immagini provenienti dalle richieste B4 vengono elaborate durante il processo di triage senza essere aggiunte in modo permanente al dataset utilizzato dal sistema RAG. Quelle impiegate per l'addestramento sono invece conservate insieme ai relativi metadati, mentre file distinti definiscono gli insiemi impiegati nelle fasi di training, validation e test.
+
+\subsubsection{Modelli e checkpoint}
+I pesi del classificatore EfficientNet-B4 sono memorizzati localmente e caricati dal relativo checkpoint per l'esecuzione dell'inferenza. Il sistema mantiene inoltre i checkpoint prodotti dai successivi cicli di retraining e una copia di backup, così da supportare il versionamento del classificatore e il ripristino di una versione precedente quando necessario.
+
+Qwen2-VL-7B-Instruct, BioMistral-7B e \texttt{all-MiniLM-L6-v2} vengono invece acquisiti tramite Hugging Face e caricati nell'ambiente di esecuzione di DermaTriage. Una volta disponibili localmente, vengono utilizzati direttamente dalla pipeline senza richiedere
+un servizio remoto di inferenza durante l'elaborazione dei casi clinici.
+
+\subsubsection{Ambiente di esecuzione e servizi esterni}
+DermaTriage è predisposto per l'esecuzione su un ambiente Linux dotato di GPU NVIDIA e supporto CUDA. L'applicazione FastAPI viene eseguita tramite Uvicorn ed espone le funzionalità necessarie all'accesso alla pipeline e alle operazioni amministrative. L'esecuzione dei modelli può avvenire anche su CPU, con tempi di elaborazione maggiori rispetto all'utilizzo dell'accelerazione GPU.
+
+La principale interazione con un sistema esterno durante il funzionamento operativo rimane quella con B4. Attraverso le relative API, DermaTriage recupera i dati e i documenti necessari all'elaborazione, restituisce gli output diagnostici e può acquisire gli esiti clinici validati utilizzati nei processi di aggiornamento.
+
+\subsection{Aggiornamento e validazione del sistema}
+DermaTriage utilizza le correzioni raccolte durante la revisione dei risultati per aggiornare nel tempo alcuni componenti della pipeline. Il processo interessa sia i prompt utilizzati dai modelli generativi sia il classificatore EfficientNet-B4, attraverso due meccanismi distinti. Nel primo caso vengono aggiornati i prompt utilizzati dai modelli, mentre nel secondo vengono aggiornati i pesi del classificatore mediante un nuovo ciclo di fine-tuning.
+
+\subsubsection{Validazione clinica e raccolta del feedback}
+Le diagnosi prodotte da DermaTriage possono essere sottoposte a revisione da parte del personale medico. La validazione consente di confermare l'esito proposto dal sistema oppure di registrare una correzione, che viene mantenuta come feedback associato alla diagnosi.
+
+Gli esiti clinici validati possono essere recuperati anche attraverso l'integrazione con B4 e costituiscono la base per i meccanismi di aggiornamento del sistema. Le correzioni raccolte vengono utilizzate con criteri differenti per l'evoluzione dei prompt e per il retraining di EfficientNet-B4.
+
+\subsubsection{Evoluzione dei prompt}
+L'aggiornamento dei prompt è gestito dal componente \texttt{PromptManager}. Il sistema tiene traccia delle correzioni effettuate durante la revisione delle diagnosi. L'aggiornamento viene attivato ogni dieci correzioni e utilizza una finestra scorrevole composta dai venti esempi più recenti.
+
+Le diverse versioni vengono mantenute in modo persistente, permettendo di distinguere il prompt attualmente utilizzato da quelli prodotti in precedenza. Il meccanismo riguarda i prompt associati a Qwen2-VL e BioMistral e consente di modificarne le istruzioni mantenendo invariati i rispettivi parametri.
+
+\subsubsection{Retraining del classificatore EfficientNet-B4}
+Il retraining di EfficientNet-B4 viene attivato al raggiungimento di 50 correzioni associate a casi in cui l'esito prodotto dal sistema risulta discordante rispetto alla valutazione del personale medico. Il controllo viene eseguito tramite un trigger event-driven e il ciclo può essere avviato anche manualmente attraverso le funzionalità amministrative dedicate.
+
+Per costruire i dati necessari al nuovo ciclo di addestramento, DermaTriage recupera tramite B4 i consulti e le relative immagini. Ai fini del retraining vengono utilizzati file JPEG e PNG, mentre i documenti PDF sono esclusi. Le priorità cliniche validate vengono ricondotte alle classi del classificatore secondo la corrispondenza P1/P2--\texttt{HIGH}, P3--\texttt{MEDIUM} e P4--\texttt{LOW}.
+
+Il fine-tuning interessa gli ultimi due blocchi di feature extraction e la testa di classificazione di EfficientNet-B4. Ogni ciclo prevede 10 epoche, con learning rate pari a $5 \times 10^{-6}$ per il backbone e $3 \times 10^{-5}$ per il classificatore. I pesi di classe $[3.0,2.0,1.0]$ assegnano maggiore importanza alla classe \texttt{HIGH}
+durante l'aggiornamento.
+
+\subsubsection{Validazione tecnica e gestione delle versioni}
+Prima che una nuova versione del classificatore sostituisca quella in uso, le sue prestazioni vengono confrontate con i valori di riferimento del modello precedente. La validazione considera in particolare la sensibilità sulla classe \texttt{HIGH}, la frequenza dei casi urgenti classificati erroneamente come \texttt{LOW} e l'accuratezza complessiva.
+
+L'aggiornamento non deve peggiorare la sensibilità sui casi \texttt{HIGH} né aumentare i falsi \texttt{LOW}; inoltre, l'accuratezza complessiva non può diminuire di oltre cinque punti percentuali rispetto al riferimento. Come baseline vengono utilizzati una sensibilità \texttt{HIGH} del $90.24\%$, un tasso di falsi \texttt{LOW} del $7.93\%$ e un'accuratezza complessiva dell'$81.74\%$.
+
+I checkpoint prodotti dai cicli di retraining vengono conservati come versioni distinte del classificatore. È inoltre previsto un checkpoint di backup della versione attiva, utilizzabile per ripristinare il modello precedente. Il rollback automatico è previsto nel caso in cui l'accuratezza della nuova versione diminuisca di oltre il 5\% rispetto al modello attivo.
+
+Le informazioni sulle diverse versioni e sulla cronologia dei cicli di retraining vengono mantenute in modo persistente, permettendo di ricostruire gli aggiornamenti effettuati nel tempo.
