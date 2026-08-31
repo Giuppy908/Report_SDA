@@ -1,4 +1,4 @@
-\section{Architettura del sistema}
+\chaptersection{1}{Architettura del sistema}
 DermaTriage è un sistema di triage dermatologico assistito da intelligenza artificiale, sviluppato nell'ambito del progetto AI vs Cancer. Il sistema elabora immagini di lesioni cutanee inviate dai pazienti insieme a informazioni cliniche e demografiche, con l'obiettivo di stimare il livello di urgenza del caso e assegnare una priorità clinica compresa tra P1 e P4.
 
 DermaTriage è integrato con la piattaforma B4 (Social Things), che rappresenta il punto di interazione con il paziente e mette a disposizione le API utilizzate per lo scambio dei dati relativi ai consulti, ai documenti caricati, ai risultati diagnostici e alle validazioni mediche. L'elaborazione diagnostica viene invece eseguita dal servizio DermaTriage, che espone un'applicazione FastAPI e implementa una pipeline di intelligenza artificiale composta da quattro stadi, seguita da un adaptation layer responsabile della conversione del risultato nella scala clinica P1-P4.
@@ -123,82 +123,51 @@ I checkpoint prodotti dai cicli di retraining vengono conservati come versioni d
 
 Le informazioni sulle diverse versioni e sulla cronologia dei cicli di retraining vengono mantenute in modo persistente, permettendo di ricostruire gli aggiornamenti effettuati nel tempo.
 
-\subsection{Data Flow Diagram e trust boundaries}
-\label{sec:dfd-trust-boundaries}
-% Il Data Flow Diagram (DFD) rappresenta il sistema in funzione dei dati che
-% vengono acquisiti, elaborati, memorizzati e trasferiti tra i suoi componenti.
-% Nel caso di DermaTriage, questa rappresentazione consente di distinguere le
-% sorgenti esterne delle informazioni cliniche, i processi che partecipano
-% all'elaborazione, le risorse persistenti utilizzate dal sistema e i flussi
-% informativi che li collegano.
+% \subsection{Data Flow Diagram e trust boundaries}
+% \label{sec:dfd-trust-boundaries}
+% Il Data Flow Diagram (DFD) rappresenta DermaTriage in funzione dei dati acquisiti, elaborati, memorizzati e trasferiti tra i suoi componenti, distinguendo le entità esterne, i processi interni, le risorse persistenti e i flussi informativi che li collegano.
 
-% Il DFD considera sia il percorso di inferenza, dalla ricezione dei dati del
-% paziente fino alla produzione della priorità P1--P4, sia i flussi associati
-% alla validazione clinica e all'aggiornamento del sistema. Sono quindi
-% rappresentati separatamente il feedback prodotto dalla revisione medica,
-% l'evoluzione dei prompt utilizzati dai modelli generativi e il retraining
-% di EfficientNet-B4.
+% Il diagramma comprende sia il percorso di inferenza, dalla ricezione dei dati del paziente alla produzione della priorità P1--P4, sia i flussi associati alla validazione clinica e all'aggiornamento del sistema, mantenendo distinti il feedback medico, l'evoluzione dei prompt e il retraining di EfficientNet-B4. Sono inoltre evidenziate le trust boundaries, utilizzate per rappresentare i punti in cui i flussi attraversano domini di fiducia differenti.
 
-% La rappresentazione dei flussi permette inoltre di individuare i punti in cui
-% le informazioni attraversano confini tra domini di fiducia differenti. Tali
-% confini sono rappresentati mediante trust boundaries e consentono di
-% distinguere gli scambi interni a DermaTriage dalle interazioni con soggetti
-% o sistemi esterni. Una trust boundary viene introdotta soltanto quando è
-% possibile giustificare un effettivo cambiamento del dominio di fiducia e non
-% per la sola separazione logica tra due componenti.
+% Gli elementi del diagramma sono identificati mediante la seguente convenzione:
 
-% Gli elementi utilizzati nel diagramma sono identificati mediante la seguente
-% convenzione:
-Il Data Flow Diagram (DFD) rappresenta DermaTriage in funzione dei dati
-acquisiti, elaborati, memorizzati e trasferiti tra i suoi componenti,
-distinguendo le entità esterne, i processi interni, le risorse persistenti e
-i flussi informativi che li collegano.
+% \begin{table}[ht]
+%     \centering
+%     \small
 
-Il diagramma comprende sia il percorso di inferenza, dalla ricezione dei dati
-del paziente alla produzione della priorità P1--P4, sia i flussi associati
-alla validazione clinica e all'aggiornamento del sistema, mantenendo distinti
-il feedback medico, l'evoluzione dei prompt e il retraining di
-EfficientNet-B4. Sono inoltre evidenziate le trust boundaries, utilizzate per
-rappresentare i punti in cui i flussi attraversano domini di fiducia
-differenti.
+%     \begin{tabular}{clp{8cm}}
+%         \hline
+%         \textbf{Prefisso} & \textbf{Elemento} & \textbf{Significato} \\
+%         \hline
 
-Gli elementi del diagramma sono identificati mediante la seguente convenzione:
+%         E & External Entity &
+%         Soggetto o sistema esterno che produce o riceve dati rispetto al
+%         perimetro di DermaTriage. \\
+%         \hline
 
-\begin{table}[ht]
-    \centering
-    \small
+%         P & Process &
+%         Funzione interna che riceve dati, li elabora e produce un nuovo
+%         risultato. \\
+%         \hline
 
-    \begin{tabular}{clp{8cm}}
-        \hline
-        \textbf{Prefisso} & \textbf{Elemento} & \textbf{Significato} \\
-        \hline
+%         D & Data Store &
+%         Risorsa persistente utilizzata per conservare dati, configurazioni o
+%         artefatti necessari al funzionamento e all'aggiornamento del sistema. \\
+%         \hline
 
-        E & External Entity &
-        Soggetto o sistema esterno che produce o riceve dati rispetto al
-        perimetro di DermaTriage. \\
-        \hline
+%         F & Data Flow &
+%         Trasferimento di informazioni tra entità esterne, processi e data
+%         store. \\
+%         \hline
 
-        P & Process &
-        Funzione interna che riceve dati, li elabora e produce un nuovo
-        risultato. \\
-        \hline
+%         TB & Trust Boundary &
+%         Confine tra componenti appartenenti a domini di fiducia differenti,
+%         attraversato da uno o più flussi dati. \\
+%         \hline
+%     \end{tabular}
 
-        D & Data Store &
-        Risorsa persistente utilizzata per conservare dati, configurazioni o
-        artefatti necessari al funzionamento e all'aggiornamento del sistema. \\
-        \hline
+%     \caption{Convenzioni utilizzate nel Data Flow Diagram}
+%     \label{tab:dfd-legend}
+% \end{table}
 
-        F & Data Flow &
-        Trasferimento di informazioni tra entità esterne, processi e data
-        store. \\
-        \hline
-
-        TB & Trust Boundary &
-        Confine tra componenti appartenenti a domini di fiducia differenti,
-        attraversato da uno o più flussi dati. \\
-        \hline
-    \end{tabular}
-
-    \caption{Convenzioni utilizzate nel Data Flow Diagram}
-    \label{tab:dfd-legend}
-\end{table}
+\clearpage
