@@ -729,3 +729,80 @@ Al termine della pipeline di inferenza, il risultato prodotto da BioMistral vien
     \caption{Asset relativo alla logica decisionale finale di DermaTriage.}
     \label{tab:asset-logica-decisionale}
 \end{table}
+
+\subsection{Servizi applicativi e configurazione}
+L'esecuzione della pipeline di DermaTriage dipende anche dai servizi che gestiscono l'interazione con l'esterno e l'accesso alle funzionalità del sistema. La piattaforma B4 supporta lo scambio delle informazioni relative
+ai consulti, mentre il servizio applicativo FastAPI espone le funzionalità di DermaTriage. A questi componenti si  affianca la configurazione operativa, che definisce i parametri e le credenziali necessari al loro funzionamento.
+
+\begin{table}[H]
+    \centering
+    \small
+    \setstretch{1}
+    \setlength{\tabcolsep}{4pt}
+    \renewcommand{\arraystretch}{1.05}
+
+    \begin{tabularx}{\textwidth}{
+        >{\raggedright\arraybackslash}p{0.6cm}
+        >{\raggedright\arraybackslash}p{2.5cm}
+        >{\raggedright\arraybackslash}p{1.6cm}
+        X
+        X
+        >{\raggedright\arraybackslash}p{1.8cm}
+    }
+        \toprule
+
+        \textbf{ID} &
+        \textbf{Asset} &
+        \textbf{Tipo} &
+        \textbf{Funzione / utilizzo} &
+        \textbf{Input / output} &
+        \textbf{Fase} \\
+
+        \midrule
+
+        A22 &
+        Piattaforma B4 &
+        Servizio esterno &
+        Gestisce l'interazione con il paziente e rende disponibili a
+        DermaTriage le informazioni associate ai consulti, supportando
+        inoltre la restituzione e la successiva validazione dei risultati. &
+        \textbf{Input:} dati e documenti associati al consulto e risultati
+        prodotti da DermaTriage.
+        \textbf{Output:} informazioni del consulto, immagini e risultati
+        validati accessibili a DermaTriage tramite API. &
+        Acquisizione, integrazione e aggiornamento \\
+
+        \midrule
+
+        A23 &
+        Servizio applicativo FastAPI &
+        Servizio applicativo &
+        Espone le funzionalità di DermaTriage e gestisce le richieste
+        necessarie all'accesso alla pipeline di inferenza e alle altre
+        operazioni applicative. &
+        \textbf{Input:} richieste ricevute attraverso gli endpoint
+        applicativi.
+        \textbf{Output:} attivazione delle operazioni richieste e
+        restituzione dei relativi risultati. &
+        Esecuzione e integrazione \\
+
+        \midrule
+
+        A24 &
+        Configurazione operativa e credenziali &
+        Artefatto di configurazione &
+        Definisce i parametri necessari al caricamento delle risorse,
+        all'esecuzione della pipeline e all'autenticazione verso i servizi
+        protetti e la piattaforma B4. &
+        \textbf{Input:} variabili d'ambiente relative a percorsi, modelli,
+        parametri operativi e credenziali.
+        \textbf{Output:} configurazione utilizzata dai componenti di
+        DermaTriage durante esecuzione, integrazione e retraining. &
+        Configurazione ed esecuzione \\
+
+        \bottomrule
+    \end{tabularx}
+
+    \caption{Asset relativi ai servizi applicativi e alla configurazione di DermaTriage.}
+    \label{tab:asset-servizi-configurazione}
+\end{table}
