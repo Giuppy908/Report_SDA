@@ -619,27 +619,19 @@ sistema RAG. Al classificatore EfficientNet-B4 è inoltre associato il checkpoin
         A16 &
         Modello EfficientNet-B4 &
         Modello di classificazione &
-        Analizza l'immagine dermatologica e fornisce la prima
-        classificazione dell'urgenza utilizzata dagli stadi successivi
-        della pipeline. &
-        \textbf{Input:} immagine dermatologica.
-        \textbf{Output:} classe HIGH, MEDIUM o LOW, confidence e
-        probabilità associate. &
-        Inferenza - Stage 1 \\
+        Analizza l'immagine dermatologica e fornisce la prima classificazione
+        dell'urgenza utilizzata dagli stadi successivi della pipeline. Il suo
+        comportamento è determinato dai parametri appresi durante l'addestramento
+        e caricati dal checkpoint attivo. &
+        \textbf{Input:} immagine dermatologica e parametri del modello caricati
+        dal checkpoint.
+        \textbf{Output:} classe HIGH, MEDIUM o LOW, confidence e probabilità
+        associate. &
+        Training e inferenza - Stage 1 \\
 
         \midrule
 
         A17 &
-        Checkpoint EfficientNet-B4 &
-        Pesi del modello &
-        Conserva i parametri appresi durante l'addestramento che determinano il comportamento della versione di EfficientNet-B4 utilizzata in inferenza. &
-        \textbf{Input:} parametri appresi durante l'addestramento e salvati nel checkpoint.
-        \textbf{Output:} parametri del modello caricati da EfficientNet-B4 per eseguire l'inferenza. &
-        Training e inferenza \\
-
-        \midrule
-
-        A18 &
         Modello Qwen2-VL &
         Modello multimodale &
         Analizza visivamente la lesione e genera una descrizione clinica
@@ -651,7 +643,7 @@ sistema RAG. Al classificatore EfficientNet-B4 è inoltre associato il checkpoin
 
         \midrule
 
-        A19 &
+        A18 &
         Modello BioMistral &
         Modello linguistico &
         Integra le informazioni prodotte dagli stadi precedenti e la
@@ -665,7 +657,7 @@ sistema RAG. Al classificatore EfficientNet-B4 è inoltre associato il checkpoin
 
         \midrule
 
-        A20 &
+        A19 &
         Modello all-MiniLM-L6-v2 &
         Modello di embedding &
         Genera le rappresentazioni vettoriali delle descrizioni cliniche
@@ -712,7 +704,7 @@ Al termine della pipeline di inferenza, il risultato prodotto da BioMistral vien
 
         \midrule
 
-        A21 &
+        A20 &
         Regole dell'Adaptation Layer &
         Logica decisionale &
         Converte il livello di urgenza prodotto dalla pipeline nella
@@ -760,7 +752,7 @@ ai consulti, mentre il servizio applicativo FastAPI espone le funzionalità di D
 
         \midrule
 
-        A22 &
+        A21 &
         Piattaforma B4 &
         Servizio esterno &
         Gestisce l'interazione con il paziente e rende disponibili a
@@ -774,7 +766,7 @@ ai consulti, mentre il servizio applicativo FastAPI espone le funzionalità di D
 
         \midrule
 
-        A23 &
+        A22 &
         Servizio applicativo FastAPI &
         Servizio applicativo &
         Espone le funzionalità di DermaTriage e gestisce le richieste
@@ -788,7 +780,7 @@ ai consulti, mentre il servizio applicativo FastAPI espone le funzionalità di D
 
         \midrule
 
-        A24 &
+        A23 &
         Configurazione operativa e credenziali &
         Artefatto di configurazione &
         Definisce i parametri necessari al caricamento delle risorse,

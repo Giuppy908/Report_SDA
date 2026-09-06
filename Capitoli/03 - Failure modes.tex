@@ -1,1 +1,474 @@
+\chaptersection{3}{Failure Mode and Effects Analysis}
 
+La Failure Mode and Effects Analysis (FMEA) è una metodologia utilizzata
+per identificare le possibili modalità di guasto di un sistema e valutarne
+le conseguenze. L'analisi considera gli asset selezionati tra quelli
+individuati nell'Asset Model, concentrandosi sugli elementi maggiormente
+significativi per il funzionamento della pipeline di DermaTriage. Per
+ciascun asset vengono esaminate le funzioni svolte, i relativi prerequisiti
+e i possibili failure mode, individuandone le cause e gli effetti che
+possono propagarsi agli altri componenti del sistema.
+
+\subsection{A01 -- Immagine dermatologica}
+
+L'asset A01 rappresenta l'immagine della lesione dermatologica acquisita
+per il caso clinico e utilizzata come principale informazione visiva
+della pipeline. L'immagine può essere recuperata nell'ambito del consulto
+gestito tramite B4 oppure fornita direttamente attraverso l'endpoint
+\texttt{/analyze}.
+
+All'interno della pipeline, l'immagine viene utilizzata nello Stage 1
+da EfficientNet-B4 per la classificazione iniziale dell'urgenza e nello
+Stage 2 da Qwen2-VL per la generazione della descrizione clinica della
+lesione. La correttezza e l'adeguatezza dell'immagine costituiscono quindi
+un prerequisito per le successive elaborazioni basate sull'informazione
+visiva.
+
+
+\subsubsection{Funzioni e prerequisiti}
+
+Le principali funzioni dell'asset e i prerequisiti necessari al loro
+svolgimento sono riportati nella Tabella~\ref{tab:a01-functions}.
+
+\begin{table}[H]
+    \centering
+    \small
+    \setstretch{1}
+    \setlength{\tabcolsep}{4pt}
+    \renewcommand{\arraystretch}{1.08}
+
+    \begin{tabularx}{\textwidth}{
+        >{\raggedright\arraybackslash}p{1.1cm}
+        >{\raggedright\arraybackslash}p{3.8cm}
+        X
+    }
+        \toprule
+
+        \textbf{ID} &
+        \textbf{Funzione} &
+        \textbf{Prerequisiti} \\
+
+        \midrule
+
+        F01.1 &
+        Rappresentazione visiva della lesione &
+        Acquisizione di un'immagine che rappresenti in modo adeguato
+        la lesione dermatologica oggetto del consulto. \\
+
+        \midrule
+
+        F01.2 &
+        Associazione dell'immagine al caso clinico &
+        Corretta corrispondenza tra l'immagine acquisita e il consulto
+        o la richiesta di analisi a cui essa appartiene. \\
+
+        \midrule
+
+        F01.3 &
+        Fornitura dell'input visivo alla pipeline di inferenza &
+        Disponibilità dell'immagine in un formato utilizzabile e corretta
+        trasmissione dell'input a EfficientNet-B4 nello Stage 1 e a Qwen2-VL
+        nello Stage 2. \\
+
+        \bottomrule
+    \end{tabularx}
+
+    \caption{Funzioni e prerequisiti dell'asset A01 -- Immagine dermatologica.}
+    \label{tab:a01-functions}
+\end{table}
+
+
+\subsubsection{Failure mode}
+
+Sulla base delle funzioni individuate vengono considerate le principali
+modalità con cui l'asset A01 può non svolgere correttamente il proprio
+compito, ovvero i failure mode.
+
+\begin{table}[H]
+    \centering
+    \footnotesize
+    \setstretch{1}
+    \setlength{\tabcolsep}{3pt}
+    \renewcommand{\arraystretch}{1.1}
+
+    \begin{tabularx}{\textwidth}{
+        >{\raggedright\arraybackslash}p{1.1cm}
+        >{\raggedright\arraybackslash}p{3cm}
+        >{\raggedright\arraybackslash}p{5cm}
+        X
+    }
+        \toprule
+
+        \textbf{ID} &
+        \textbf{Failure mode} &
+        \textbf{Possibili cause} &
+        \textbf{Effetti} \\
+
+        \midrule
+
+        FM01.1 &
+        Immagine di qualità insufficiente &
+        Sfocatura, illuminazione inadeguata, risoluzione insufficiente,
+        presenza di artefatti oppure condizioni di acquisizione che
+        rendono poco distinguibili le caratteristiche della lesione. &
+        L'immagine non rappresenta con sufficiente chiarezza le
+        caratteristiche visive della lesione, riducendo l'affidabilità
+        delle elaborazioni effettuate da EfficientNet-B4 e Qwen2-VL. \\
+
+        \midrule
+
+        FM01.2 &
+        Lesione rappresentata in modo incompleto o non adeguato &
+        Inquadratura parziale, porzione rilevante della lesione esclusa
+        dall'immagine oppure acquisizione di una regione cutanea che non
+        consente di osservare adeguatamente la lesione di interesse. &
+        I modelli ricevono una rappresentazione visiva incompleta del caso
+        e possono quindi produrre una classificazione dell'urgenza o una
+        descrizione clinica non rappresentative della lesione effettiva. \\
+
+        \midrule
+
+        FM01.3 &
+        Immagine associata al caso clinico errato &
+        Errata associazione tra immagine e consulto, selezione del
+        documento non corrispondente al caso oppure errore nella gestione
+        del riferimento utilizzato per recuperare l'immagine. &
+        La pipeline elabora un'immagine appartenente a un caso differente
+        rispetto alle informazioni cliniche associate alla richiesta.
+        Le inferenze prodotte risultano quindi riferite a dati non
+        coerenti tra loro e possono determinare un risultato di triage
+        non pertinente al paziente analizzato. \\
+
+        \midrule
+
+        FM01.4 &
+        Immagine non disponibile o non utilizzabile dalla pipeline &
+        Formato non supportato, file danneggiato, errore nella lettura del file,
+        mancato recupero dell'immagine dal servizio di origine oppure errore
+        durante il trasferimento. &
+        EfficientNet-B4 e Qwen2-VL non dispongono di un input visivo utilizzabile
+        e non possono quindi completare normalmente le rispettive elaborazioni. \\
+
+        \bottomrule
+    \end{tabularx}
+
+    \caption{Failure mode individuati per l'asset A01 -- Immagine dermatologica.}
+    \label{tab:a01-failure-modes}
+\end{table}
+\subsection{A09 -- Dataset clinico RAG}
+
+L'asset A09 rappresenta il dataset clinico utilizzato dal sistema RAG,
+memorizzato nel file \texttt{RAG\_dataset.csv}. Il dataset contiene casi
+clinici dermatologici caratterizzati da informazioni demografiche,
+localizzazione della lesione, descrizione clinica, diagnosi e livello
+di urgenza.
+
+Durante l'inferenza, le descrizioni cliniche contenute nel dataset
+costituiscono la base informativa utilizzata nello Stage 3 per il recupero
+dei casi clinici più simili alla descrizione prodotta da Qwen2-VL.
+Il dataset rappresenta inoltre la base da cui vengono derivati i dati
+utilizzati per l'addestramento del classificatore EfficientNet-B4.
+
+
+\subsubsection{Funzioni e prerequisiti}
+
+Le principali funzioni dell'asset e i prerequisiti necessari al loro
+svolgimento sono riportati nella Tabella~\ref{tab:a09-functions}.
+
+\begin{table}[H]
+    \centering
+    \small
+    \setstretch{1}
+    \setlength{\tabcolsep}{4pt}
+    \renewcommand{\arraystretch}{1.08}
+
+    \begin{tabularx}{\textwidth}{
+        >{\raggedright\arraybackslash}p{1.1cm}
+        >{\raggedright\arraybackslash}p{3.8cm}
+        X
+    }
+        \toprule
+
+        \textbf{ID} &
+        \textbf{Funzione} &
+        \textbf{Prerequisiti} \\
+
+        \midrule
+
+        F09.1 &
+        Rappresentazione dei casi clinici dermatologici &
+        Presenza di record clinici correttamente strutturati e contenenti
+        informazioni coerenti relative a descrizione della lesione,
+        diagnosi e livello di urgenza. \\
+
+        \midrule
+
+        F09.2 &
+        Fornitura della base informativa per il retrieval RAG &
+        Disponibilità delle descrizioni cliniche necessarie
+        all'indicizzazione e corretta associazione tra descrizione,
+        diagnosi, urgenza e relativo caso clinico. \\
+
+        \midrule
+
+        F09.3 &
+        Supporto alla costruzione dei dati per l'addestramento &
+        Disponibilità di record e label utilizzabili per derivare
+        i dataset impiegati nel processo di training del classificatore. \\
+
+        \bottomrule
+    \end{tabularx}
+
+    \caption{Funzioni e prerequisiti dell'asset A09 -- Dataset clinico RAG.}
+    \label{tab:a09-functions}
+\end{table}
+
+
+\subsubsection{Failure mode}
+
+Sulla base delle funzioni individuate vengono considerate le principali
+modalità con cui l'asset A09 può non svolgere correttamente il proprio
+compito, ovvero i failure mode.
+
+\begin{table}[H]
+    \centering
+    \footnotesize
+    \setstretch{1}
+    \setlength{\tabcolsep}{3pt}
+    \renewcommand{\arraystretch}{1.1}
+
+    \begin{tabularx}{\textwidth}{
+        >{\raggedright\arraybackslash}p{1.1cm}
+        >{\raggedright\arraybackslash}p{3cm}
+        >{\raggedright\arraybackslash}p{5cm}
+        X
+    }
+        \toprule
+
+        \textbf{ID} &
+        \textbf{Failure mode} &
+        \textbf{Possibili cause} &
+        \textbf{Effetti} \\
+
+        \midrule
+
+        FM09.1 &
+        Record clinici incompleti o incoerenti &
+        Valori mancanti, informazioni cliniche non coerenti tra loro,
+        errori nella compilazione dei record oppure associazione errata
+        tra attributi appartenenti allo stesso caso. &
+        Il dataset rappresenta in modo incompleto o non corretto i casi
+        clinici e può fornire informazioni non affidabili sia al sistema
+        RAG sia ai processi che utilizzano il dataset come base per la
+        preparazione dei dati di addestramento. \\
+
+        \midrule
+
+        FM09.2 &
+        Associazione errata tra descrizione clinica e diagnosi o urgenza &
+        Label diagnostica o livello di urgenza non corrispondenti alla
+        descrizione clinica del caso oppure errore nell'associazione dei
+        campi appartenenti allo stesso record. &
+        Un caso clinico può essere recuperato come riferimento insieme
+        a una diagnosi o a un livello di urgenza non corretti. L'errore
+        può propagarsi allo Stage 3 e influenzare il contesto fornito
+        a BioMistral, oppure essere trasferito ai dati utilizzati
+        nell'addestramento del classificatore. \\
+
+        \midrule
+
+        FM09.3 &
+        Dataset non sufficientemente rappresentativo del dominio &
+        Distribuzione sbilanciata dei casi, sottorappresentazione di
+        determinate tipologie di lesione o caratteristiche della
+        popolazione non adeguatamente coperte dal dataset. &
+        Il sistema dispone di una base clinica meno rappresentativa
+        rispetto ai casi incontrati in esercizio. Il retrieval può
+        individuare riferimenti poco pertinenti per alcuni casi e i dati
+        derivati dal dataset possono contribuire a una capacità di
+        generalizzazione insufficiente del classificatore. \\
+
+        \midrule
+
+        FM09.4 &
+        Dataset non disponibile o non correttamente accessibile &
+        File mancante o danneggiato, percorso configurato in modo errato,
+        errore durante la lettura oppure indisponibilità della risorsa
+        nel momento in cui deve essere utilizzata. &
+        Il sistema non dispone della base informativa necessaria per
+        costruire o aggiornare il supporto al retrieval RAG e i processi
+        che dipendono dal dataset non possono svolgersi secondo il normale
+        funzionamento previsto. \\
+
+        \bottomrule
+    \end{tabularx}
+
+    \caption{Failure mode individuati per l'asset A09 -- Dataset clinico RAG.}
+    \label{tab:a09-failure-modes}
+\end{table}
+\subsection{A16 -- Modello EfficientNet-B4}
+
+L'asset A16 riguarda il modello EfficientNet-B4 utilizzato per la
+classificazione iniziale dell'urgenza dermatologica e i parametri appresi
+durante l'addestramento, caricati dal checkpoint attivo. A partire
+dall'immagine della lesione, il modello produce una classe di urgenza
+tra HIGH, MEDIUM e LOW, insieme alla confidence della classificazione e
+alle probabilità associate alle diverse classi.
+
+Il risultato dello Stage 1 viene utilizzato dalle successive elaborazioni
+della pipeline e contribuisce alla sintesi clinica prodotta da BioMistral
+e alla successiva determinazione della priorità P1--P4.
+
+
+\subsubsection{Funzioni e prerequisiti}
+
+Le principali funzioni dell'asset e i prerequisiti necessari al loro
+svolgimento sono riportati nella Tabella~\ref{tab:a16-functions}.
+
+\begin{table}[H]
+    \centering
+    \small
+    \setstretch{1}
+    \setlength{\tabcolsep}{4pt}
+    \renewcommand{\arraystretch}{1.08}
+
+    \begin{tabularx}{\textwidth}{
+        >{\raggedright\arraybackslash}p{1.1cm}
+        >{\raggedright\arraybackslash}p{3.8cm}
+        X
+    }
+        \toprule
+
+        \textbf{ID} &
+        \textbf{Funzione} &
+        \textbf{Prerequisiti} \\
+
+        \midrule
+
+        F16.1 &
+        Estrazione delle caratteristiche visive &
+        Disponibilità di un'immagine dermatologica acquisita correttamente
+        (A01) e caricamento del modello con i relativi parametri. \\
+
+        \midrule
+
+        F16.2 &
+        Classificazione dell'urgenza in HIGH, MEDIUM o LOW &
+        Corretta elaborazione dell'immagine e utilizzo dei parametri
+        previsti per la versione attiva del classificatore. \\
+
+        \midrule
+
+        F16.3 &
+        Produzione della confidence e delle probabilità associate &
+        Completamento corretto dell'inferenza e disponibilità dell'output
+        numerico prodotto dal classificatore. \\
+
+        \midrule
+
+        F16.4 &
+        Utilizzo della versione prevista del modello &
+        Disponibilità del checkpoint attivo e corretta configurazione
+        dei riferimenti utilizzati per il caricamento del modello (A23). \\
+
+        \bottomrule
+    \end{tabularx}
+
+    \caption{Funzioni e prerequisiti dell'asset A16 -- Modello EfficientNet-B4 e relativi pesi.}
+    \label{tab:a16-functions}
+\end{table}
+
+
+\subsubsection{Failure mode}
+
+Sulla base delle funzioni individuate vengono considerate le principali
+modalità con cui l'asset A16 può non svolgere correttamente il proprio
+compito, ovvero i failure mode.
+
+\begin{table}[H]
+    \centering
+    \footnotesize
+    \setstretch{1}
+    \setlength{\tabcolsep}{3pt}
+    \renewcommand{\arraystretch}{1.1}
+
+    \begin{tabularx}{\textwidth}{
+        >{\raggedright\arraybackslash}p{1.1cm}
+        >{\raggedright\arraybackslash}p{3cm}
+        >{\raggedright\arraybackslash}p{5cm}
+        X
+    }
+        \toprule
+
+        \textbf{ID} &
+        \textbf{Failure mode} &
+        \textbf{Possibili cause} &
+        \textbf{Effetti} \\
+
+        \midrule
+
+        FM16.1 &
+        Estrazione inadeguata delle caratteristiche visive &
+        Qualità insufficiente dell'immagine, presenza di artefatti visivi oppure
+        inquadratura non adeguata della lesione. &
+        Le caratteristiche ricavate dall'immagine non rappresentano
+        adeguatamente la lesione osservata, compromettendo l'informazione
+        utilizzata dal classificatore per determinare la classe di urgenza. \\
+
+        \midrule
+
+        FM16.2 &
+        Classificazione errata dell'urgenza &
+        Limiti di generalizzazione del modello, distribuzione dei casi operativi
+        differente da quella osservata durante l'addestramento oppure insufficiente
+        capacità discriminativa tra le classi di urgenza. &
+        Il modello assegna una classe HIGH, MEDIUM o LOW non coerente con
+        l'effettiva urgenza del caso. L'errore può determinare una sovrastima
+        o una sottostima dell'urgenza che si propaga agli stadi
+        successivi, contribuendo così ad una valutazione finale del triage
+        non appropriata. \\
+
+        \midrule
+
+        FM16.3 &
+        Confidence o probabilità non coerenti con la classificazione &
+        Calibrazione non adeguata delle probabilità prodotte dal modello
+        oppure comportamento eccessivamente confidente su campioni
+        incerti o poco rappresentativi. &
+        La classe restituita è accompagnata da valori che non riflettono
+        correttamente l'incertezza dell'inferenza. Gli stadi successivi
+        ricevono quindi una valutazione non attendibile della confidenza
+        associata alla classificazione. \\
+
+        \midrule
+
+        FM16.4 &
+        Utilizzo di pesi o checkpoint non validi o non previsti &
+        Corruzione o incompletezza del checkpoint, incompatibilità tra
+        modello e parametri caricati, selezione di un checkpoint errato
+        oppure mancato allineamento tra la versione validata e quella
+        effettivamente utilizzata durante l'inferenza. &
+        Il classificatore può operare con un comportamento diverso da
+        quello previsto o validato, producendo classificazioni non
+        affidabili. Nei casi in cui i parametri risultino incompatibili
+        o non caricabili, l'inferenza può inoltre non essere completata. \\
+
+        \midrule
+
+        FM16.5 &
+        Output di inferenza incompleto o non disponibile &
+        Errore durante l'esecuzione del modello, incompatibilità tra input,
+        modello e parametri caricati oppure anomalia software che interrompe
+        l'elaborazione prima del suo completamento. &
+        Lo Stage 1 non restituisce tutti gli elementi previsti, quali classe,
+        confidence e probabilità, oppure non produce alcun risultato utilizzabile.
+        Gli stadi dipendenti dall'output del classificatore non dispongono quindi
+        delle informazioni necessarie per proseguire secondo il normale flusso
+        della pipeline. \\
+
+        \bottomrule
+    \end{tabularx}
+
+    \caption{Failure mode individuati per l'asset A16 -- Modello EfficientNet-B4 e relativi pesi.}
+    \label{tab:a16-failure-modes}
+\end{table}
