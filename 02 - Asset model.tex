@@ -1,0 +1,800 @@
+\chaptersection{2}{Identificazione degli asset}
+DermaTriage comprende diversi asset che concorrono al processo di triage
+e al mantenimento della pipeline nel tempo. Oltre ai dati clinici acquisiti
+per ciascun caso, rientrano tra gli asset le informazioni prodotte durante
+l'inferenza, i dataset e le strutture di persistenza, i modelli AI e gli
+artefatti utilizzati nei processi di aggiornamento e validazione.
+
+Le dipendenze tra questi elementi consentono agli effetti di un eventuale
+malfunzionamento di propagarsi tra differenti stadi della pipeline. Gli asset
+comprendono quindi sia le risorse direttamente coinvolte nella determinazione
+della priorità clinica, sia quelle necessarie al recupero delle informazioni
+e all'evoluzione del sistema.
+
+\subsection{Dati clinici e input}
+Il processo di triage riceve come input l'immagine della lesione e le informazioni cliniche associate al paziente, tra cui età, sesso, localizzazione anatomica e sintomatologia disponibile. Nel flusso integrato con B4, ogni richiesta è inoltre associata a un consulto specifico, il cui identificativo consente di mantenere il corretto collegamento tra i dati acquisiti, l'elaborazione effettuata e il risultato prodotto da DermaTriage.
+
+% \begin{table}[!htbp]
+%     \centering
+%     \small
+%     \setstretch{1}
+%     \setlength{\tabcolsep}{4pt}
+%     \renewcommand{\arraystretch}{1.05}
+
+%     \begin{tabularx}{\textwidth}{
+%         >{\raggedright\arraybackslash}p{0.6cm}
+%         >{\raggedright\arraybackslash}p{2.5cm}
+%         >{\raggedright\arraybackslash}p{1.5cm}
+%         X
+%         X
+%         >{\raggedright\arraybackslash}p{1.8cm}
+%     }
+%         \toprule
+
+%         \textbf{ID} &
+%         \textbf{Asset} &
+%         \textbf{Tipo} &
+%         \textbf{Funzione} &
+%         \textbf{Input / utilizzo} &
+%         \textbf{Fase} \\
+
+%         \midrule
+
+%         A01 &
+%         Immagine dermatologica &
+%         Dato clinico &
+%         Rappresenta visivamente la lesione cutanea sottoposta al processo
+%         di triage. &
+%         Acquisita tramite B4 o fornita direttamente tramite
+%         \texttt{/analyze}; viene utilizzata da EfficientNet-B4 e
+%         Qwen2-VL. &
+%         Acquisizione e inferenza \\
+
+%         \midrule
+
+%         A02 &
+%         Dati clinici, demografici e sintomatologia &
+%         Dato clinico &
+%         Fornisce il contesto clinico e demografico associato alla lesione
+%         e completa le informazioni utilizzate durante l'elaborazione. &
+%         Comprende età, sesso, localizzazione anatomica e sintomatologia
+%         disponibile; i sintomi contribuiscono alla sintesi clinica
+%         prodotta da BioMistral. &
+%         Acquisizione e inferenza \\
+
+%         \midrule
+
+%         A03 &
+%         Identificativi e associazione del consulto &
+%         Metadato &
+%         Mantiene il collegamento tra la richiesta di triage e i dati,
+%         documenti e risultati appartenenti allo stesso caso. &
+%         Nel percorso integrato con B4, il \texttt{consulto\_id} identifica
+%         la richiesta da elaborare e permette di associare ad essa le
+%         informazioni e il risultato diagnostico. &
+%         Integrazione e gestione del caso \\
+
+%         \bottomrule
+%     \end{tabularx}
+
+%     \caption{Asset relativi ai dati clinici e agli input di DermaTriage.}
+%     \label{tab:asset-dati-input}
+% \end{table}
+
+% \begin{landscape}
+
+% \begin{table}[!htbp]
+%     \centering
+%     \small
+%     \setstretch{1}
+%     \setlength{\tabcolsep}{4pt}
+%     \renewcommand{\arraystretch}{1.08}
+
+%     \begin{tabularx}{\linewidth}{
+%         >{\raggedright\arraybackslash}p{0.7cm}
+%         >{\raggedright\arraybackslash}p{3.0cm}
+%         >{\raggedright\arraybackslash}p{2.2cm}
+%         X
+%         X
+%         X
+%         >{\raggedright\arraybackslash}p{2.4cm}
+%     }
+%         \toprule
+
+%         \textbf{ID} &
+%         \textbf{Asset} &
+%         \textbf{Tipo} &
+%         \textbf{Funzione} &
+%         \textbf{Input / origine} &
+%         \textbf{Output / destinazione} &
+%         \textbf{Fase} \\
+
+%         \midrule
+
+%         A01 &
+%         Immagine dermatologica &
+%         Dato clinico grezzo &
+%         Fornisce l'informazione visiva della lesione necessaria alla sua
+%         classificazione e descrizione clinica. &
+%         Immagine della lesione acquisita tramite B4 oppure fornita
+%         direttamente tramite \texttt{/analyze}. &
+%         Fornita a EfficientNet-B4 per la classificazione dell'urgenza e
+%         a Qwen2-VL per la generazione della descrizione clinica. &
+%         Acquisizione e inferenza \\
+
+%         \midrule
+
+%         A02 &
+%         Dati clinici, demografici e sintomatologia &
+%         Dato clinico strutturato &
+%         Fornisce il contesto clinico e demografico complementare
+%         all'immagine della lesione. &
+%         Età, sesso, localizzazione anatomica e sintomatologia disponibile
+%         associati al caso. &
+%         Le informazioni contestuali vengono utilizzate durante
+%         l'elaborazione; la sintomatologia costituisce un input della
+%         sintesi clinica prodotta da BioMistral. &
+%         Acquisizione e inferenza \\
+
+%         \midrule
+
+%         A03 &
+%         Identificativo del consulto &
+%         Metadato applicativo &
+%         Identifica la richiesta B4 da elaborare e preserva l'associazione
+%         tra il consulto e la relativa elaborazione. &
+%         \texttt{consulto\_id} fornito a DermaTriage attraverso
+%         \texttt{/diagnose}. &
+%         Utilizzato per individuare il consulto B4 da elaborare e associare
+%         il risultato prodotto alla richiesta corrispondente. &
+%         Integrazione con B4 e gestione del caso \\
+
+%         \bottomrule
+%     \end{tabularx}
+
+%     \caption{Asset relativi ai dati clinici e agli input di DermaTriage.}
+%     \label{tab:asset-dati-input}
+% \end{table}
+
+% \end{landscape}
+
+% \begin{table}[!htbp]
+%     \centering
+%     \small
+%     \setstretch{1}
+%     \setlength{\tabcolsep}{5pt}
+%     \renewcommand{\arraystretch}{1.12}
+
+%     \begin{tabularx}{\textwidth}{
+%         >{\raggedright\arraybackslash}p{0.7cm}
+%         >{\raggedright\arraybackslash}p{3.0cm}
+%         >{\raggedright\arraybackslash}p{2.2cm}
+%         X
+%         >{\raggedright\arraybackslash}p{2.4cm}
+%     }
+%         \toprule
+
+%         \textbf{ID} &
+%         \textbf{Asset} &
+%         \textbf{Tipo} &
+%         \textbf{Funzione} &
+%         \textbf{Fase} \\
+
+%         \midrule
+
+%         A01 &
+%         Immagine dermatologica &
+%         Dato clinico grezzo &
+%         Fornisce l'informazione visiva della lesione necessaria alla sua
+%         classificazione e descrizione clinica. &
+%         Acquisizione e inferenza \\
+
+%         \addlinespace[2pt]
+
+%         \multicolumn{2}{@{}l}{\textbf{Input / origine}} &
+%         \multicolumn{3}{>{\raggedright\arraybackslash}X}{
+%             Immagine della lesione acquisita tramite B4 oppure fornita
+%             direttamente tramite \texttt{/analyze}.
+%         } \\
+
+%         \addlinespace[2pt]
+
+%         \multicolumn{2}{@{}l}{\textbf{Output / destinazione}} &
+%         \multicolumn{3}{>{\raggedright\arraybackslash}X}{
+%             Fornita a EfficientNet-B4 per la classificazione dell'urgenza
+%             e a Qwen2-VL per la generazione della descrizione clinica.
+%         } \\
+
+%         \midrule
+
+%         A02 &
+%         Dati clinici, demografici e sintomatologia &
+%         Dato clinico strutturato &
+%         Fornisce il contesto clinico e demografico complementare
+%         all'immagine della lesione. &
+%         Acquisizione e inferenza \\
+
+%         \addlinespace[2pt]
+
+%         \multicolumn{2}{@{}l}{\textbf{Input / origine}} &
+%         \multicolumn{3}{>{\raggedright\arraybackslash}X}{
+%             Età, sesso, localizzazione anatomica e sintomatologia
+%             disponibile associati al caso.
+%         } \\
+
+%         \addlinespace[2pt]
+
+%         \multicolumn{2}{@{}l}{\textbf{Output / destinazione}} &
+%         \multicolumn{3}{>{\raggedright\arraybackslash}X}{
+%             Le informazioni contestuali vengono utilizzate durante
+%             l'elaborazione; la sintomatologia costituisce un input della
+%             sintesi clinica prodotta da BioMistral.
+%         } \\
+
+%         \midrule
+
+%         A03 &
+%         Identificativo del consulto &
+%         Metadato applicativo &
+%         Identifica la richiesta B4 da elaborare e preserva l'associazione
+%         tra il consulto e la relativa elaborazione. &
+%         Integrazione con B4 e gestione del caso \\
+
+%         \addlinespace[2pt]
+
+%         \multicolumn{2}{@{}l}{\textbf{Input / origine}} &
+%         \multicolumn{3}{>{\raggedright\arraybackslash}X}{
+%             \texttt{consulto\_id} fornito a DermaTriage attraverso
+%             \texttt{/diagnose}.
+%         } \\
+
+%         \addlinespace[2pt]
+
+%         \multicolumn{2}{@{}l}{\textbf{Output / destinazione}} &
+%         \multicolumn{3}{>{\raggedright\arraybackslash}X}{
+%             Utilizzato per individuare il consulto B4 da elaborare e
+%             associare il risultato prodotto alla richiesta corrispondente.
+%         } \\
+
+%         \bottomrule
+%     \end{tabularx}
+
+%     \caption{Asset relativi ai dati clinici e agli input di DermaTriage.}
+%     \label{tab:asset-dati-input}
+% \end{table}
+
+\begin{table}[H]
+    \centering
+    \small
+    \setstretch{1}
+    \setlength{\tabcolsep}{4pt}
+    \renewcommand{\arraystretch}{1.05}
+
+    \begin{tabularx}{\textwidth}{
+        >{\raggedright\arraybackslash}p{0.6cm}
+        >{\raggedright\arraybackslash}p{2.5cm}
+        >{\raggedright\arraybackslash}p{1.6cm}
+        X
+        X
+        >{\raggedright\arraybackslash}p{1.8cm}
+    }
+        \toprule
+
+        \textbf{ID} &
+        \textbf{Asset} &
+        \textbf{Tipo} &
+        \textbf{Funzione / utilizzo} &
+        \textbf{Input / output} &
+        \textbf{Fase} \\
+
+        \midrule
+
+        A01 &
+        Immagine dermatologica &
+        Dato clinico grezzo &
+        Fornisce l'informazione visiva della lesione utilizzata per la
+        classificazione dell'urgenza e la generazione della descrizione
+        clinica. &
+        \textbf{Input:} immagine della lesione acquisita tramite B4 o
+        \texttt{/analyze}. \textbf{Output:} fornita a EfficientNet-B4 e
+        Qwen2-VL. &
+        Acquisizione e inferenza \\
+
+        \midrule
+
+        A02 &
+        Dati clinici, demografici e sintomatologia &
+        Dato clinico strutturato &
+        Fornisce il contesto clinico e demografico complementare
+        all'immagine e contribuisce alla successiva elaborazione del caso. &
+        \textbf{Input:} età, sesso, localizzazione anatomica e
+        sintomatologia disponibile. \textbf{Output:} informazioni
+        contestuali utilizzate nella pipeline; i sintomi alimentano la
+        sintesi clinica di BioMistral. &
+        Acquisizione e inferenza \\
+
+        \midrule
+
+        A03 &
+        Identificativo del consulto &
+        Metadato applicativo &
+        Identifica la richiesta B4 e mantiene l'associazione tra il
+        consulto, i dati elaborati e il relativo risultato. &
+        \textbf{Input:} \texttt{consulto\_id} ricevuto tramite
+        \texttt{/diagnose}. \textbf{Output:} riferimento utilizzato per
+        recuperare il caso e associare il risultato alla richiesta
+        corrispondente. &
+        Integrazione e gestione del caso \\
+
+        \bottomrule
+    \end{tabularx}
+
+    \caption{Asset relativi ai dati clinici e agli input di DermaTriage.}
+    \label{tab:asset-dati-input}
+\end{table}
+
+\subsection{Inferenze e risultati della pipeline}
+Durante l'inferenza, i diversi stadi della pipeline producono informazioni intermedie che vengono progressivamente combinate fino alla determinazione della priorità clinica finale. Tali risultati comprendono la classificazione iniziale dell'urgenza, la descrizione clinica della lesione, i casi simili recuperati dal sistema RAG e la successiva sintesi clinica.
+
+\begin{table}[H]
+    \centering
+    \small
+    \setstretch{1}
+    \setlength{\tabcolsep}{4pt}
+    \renewcommand{\arraystretch}{1.05}
+
+    \begin{tabularx}{\textwidth}{
+        >{\raggedright\arraybackslash}p{0.6cm}
+        >{\raggedright\arraybackslash}p{2.5cm}
+        >{\raggedright\arraybackslash}p{1.6cm}
+        X
+        X
+        >{\raggedright\arraybackslash}p{1.8cm}
+    }
+        \toprule
+
+        \textbf{ID} &
+        \textbf{Asset} &
+        \textbf{Tipo} &
+        \textbf{Funzione / utilizzo} &
+        \textbf{Input / output} &
+        \textbf{Fase} \\
+
+        \midrule
+
+        A04 &
+        Classificazione di urgenza EfficientNet-B4 &
+        Inferenza del modello &
+        Fornisce una prima valutazione dell'urgenza della lesione,
+        utilizzata dagli stadi successivi della pipeline. &
+        \textbf{Input:} immagine dermatologica.
+        \textbf{Output:} classe HIGH, MEDIUM o LOW, confidence e
+        probabilità associate. &
+        Inferenza - Stage 1 \\
+
+        \midrule
+
+        A05 &
+        Descrizione clinica Qwen2-VL &
+        Inferenza del modello &
+        Produce una descrizione strutturata delle caratteristiche
+        visibili della lesione, utilizzata per contestualizzare il caso. &
+        \textbf{Input:} immagine dermatologica.
+        \textbf{Output:} descrizione di forma, bordi, colore, texture e
+        caratteristiche sospette della lesione. &
+        Inferenza - Stage 2 \\
+
+        \midrule
+
+        A06 &
+        Casi clinici simili recuperati dal RAG &
+        Informa\-zione recuperata &
+        Fornisce precedenti clinici semanticamente simili al caso
+        corrente come supporto alla successiva sintesi clinica. &
+        \textbf{Input:} descrizione clinica della lesione.
+        \textbf{Output:} cinque casi simili con diagnosi, urgenza,
+        similarità e relativo identificativo anonimizzato. &
+        Inferenza - Stage 3 \\
+
+        \midrule
+
+        A07 &
+        Sintesi clinica BioMistral &
+        Inferenza del modello &
+        Integra i risultati degli stadi precedenti e la sintomatologia
+        disponibile per formulare una valutazione clinica complessiva. &
+        \textbf{Input:} risultati degli Stage 1-3 e sintomi.
+        \textbf{Output:} urgenza finale, confidence, reasoning,
+        azione raccomandata e patologia prevista. &
+        Inferenza - Stage 4 \\
+
+        \midrule
+
+        A08 &
+        Risultato finale di triage &
+        Output clinico &
+        Esprime la priorità clinica restituita dal sistema e costituisce
+        il risultato conclusivo del processo di triage. &
+        \textbf{Input:} sintesi clinica e logica dell'Adaptation Layer.
+        \textbf{Output:} priorità P1-P4 e informazioni associate al
+        risultato. &
+        Decisione finale \\
+
+        \bottomrule
+    \end{tabularx}
+
+    \caption{Asset relativi alle inferenze e ai risultati prodotti dalla pipeline di DermaTriage.}
+    \label{tab:asset-inferenze-risultati}
+\end{table}
+
+\subsection{Dataset e persistenza}
+DermaTriage utilizza diverse risorse persistenti per supportare il recupero dei casi clinici, l'addestramento e la valutazione del classificatore e la conservazione dei risultati prodotti durante l'esecuzione. Questi asset comprendono sia dati strutturati sia rappresentazioni indicizzate utilizzate direttamente dalla pipeline.
+
+\begin{table}[H]
+    \centering
+    \small
+    \setstretch{1}
+    \setlength{\tabcolsep}{4pt}
+    \renewcommand{\arraystretch}{1.05}
+
+    \begin{tabularx}{\textwidth}{
+        >{\raggedright\arraybackslash}p{0.6cm}
+        >{\raggedright\arraybackslash}p{2.5cm}
+        >{\raggedright\arraybackslash}p{1.6cm}
+        X
+        X
+        >{\raggedright\arraybackslash}p{1.8cm}
+    }
+        \toprule
+
+        \textbf{ID} &
+        \textbf{Asset} &
+        \textbf{Tipo} &
+        \textbf{Funzione / utilizzo} &
+        \textbf{Input / output} &
+        \textbf{Fase} \\
+
+        \midrule
+
+        A09 &
+        Dataset clinico RAG &
+        Dataset clinico &
+        Conserva i casi clinici utilizzati come base informativa per il
+        retrieval dei casi simili e come base per la preparazione dei dati
+        del classificatore. &
+        \textbf{Input:} casi clinici strutturati con descrizione clinica, diagnosi, livello di urgenza e relativi metadati.
+        \textbf{Output:} base informativa utilizzata per la costruzione dell’indice vettoriale ChromaDB e per la preparazione dei dati del classificatore. &
+        Persistenza e preparazione dati \\
+
+        \midrule
+
+        A10 &
+        Indice vettoriale ChromaDB &
+        Indice vettoriale &
+        Memorizza e indicizza le rappresentazioni vettoriali delle descrizioni cliniche, consentendo la ricerca per similarità semantica. &
+        \textbf{Input:} embedding delle descrizioni cliniche indicizzate e embedding della query.
+        \textbf{Output:} riferimenti ai cinque casi più simili e relativi valori
+        di similarità, utilizzati dal sistema RAG per costruire il risultato del
+        retrieval. &
+        Persistenza e inferenza - Stage 3 \\
+
+        \midrule
+
+        A11 &
+        Dati di training, validation e test &
+        Dataset ML &
+        Supporta l'addestramento, la selezione del modello e la valutazione
+        delle prestazioni di EfficientNet-B4. &
+        \textbf{Input:} immagini, metadati e dati derivati dalla preparazione
+        del dataset. \textbf{Output:} split distinti per training,
+        validation e test utilizzati nel ciclo di sviluppo del modello. &
+        Training e validazione \\
+
+        \midrule
+
+        A12 &
+        Storico delle diagnosi &
+        Dato persistente &
+        Conserva localmente i risultati diagnostici prodotti da
+        DermaTriage e ne supporta la consultazione e la gestione successiva. &
+        \textbf{Input:} risultati prodotti dalle richieste di triage.
+        \textbf{Output:} diagnosi archiviate e disponibili per la consultazione e per eventuali revisioni successive. &
+        Persistenza dei risultati \\
+
+        \bottomrule
+    \end{tabularx}
+
+    \caption{Asset relativi ai dataset e alle risorse persistenti di DermaTriage.}
+    \label{tab:asset-dataset-persistenza}
+\end{table}
+
+\subsection{Feedback e aggiornamento}
+Il mantenimento della pipeline utilizza gli esiti della validazione clinica per aggiornare nel tempo alcuni dei suoi componenti. Le conferme e le correzioni effettuate dal personale medico alimentano l'evoluzione dei prompt e, in caso di discordanza con il risultato prodotto dal sistema, il retraining di EfficientNet-B4. Le nuove versioni del classificatore sono inoltre sottoposte a criteri di validazione prima della loro adozione.
+
+\begin{table}[H]
+    \centering
+    \small
+    \setstretch{1}
+    \setlength{\tabcolsep}{4pt}
+    \renewcommand{\arraystretch}{1.05}
+
+    \begin{tabularx}{\textwidth}{
+        >{\raggedright\arraybackslash}p{0.6cm}
+        >{\raggedright\arraybackslash}p{2.5cm}
+        >{\raggedright\arraybackslash}p{1.6cm}
+        X
+        X
+        >{\raggedright\arraybackslash}p{1.8cm}
+    }
+        \toprule
+
+        \textbf{ID} &
+        \textbf{Asset} &
+        \textbf{Tipo} &
+        \textbf{Funzione / utilizzo} &
+        \textbf{Input / output} &
+        \textbf{Fase} \\
+
+        \midrule
+
+        A13 &
+        Feedback clinico validato &
+        Dato clinico validato &
+        Raccoglie le conferme e le correzioni effettuate dal personale
+        medico e fornisce il riferimento clinico utilizzato nei processi
+        di aggiornamento del sistema. &
+        \textbf{Input:} esito prodotto da DermaTriage e successiva
+        validazione medica.
+        \textbf{Output:} conferme o correzioni utilizzate per
+        l'evoluzione dei prompt e, nei casi discordanti, per il retraining
+        di EfficientNet-B4. &
+        Validazione e aggiornamento \\
+
+        \midrule
+
+        A14 &
+        Prompt e storico delle versioni &
+        Artefatto AI &
+        Contiene le istruzioni utilizzate da Qwen2-VL e BioMistral e
+        conserva le relative versioni generate dal processo di evoluzione
+        dei prompt. &
+        \textbf{Input:} correzioni cliniche recenti utilizzate per
+        aggiornare i prompt.
+        \textbf{Output:} prompt aggiornati utilizzati dai modelli
+        generativi durante l'inferenza. &
+        Aggiorna\-mento e inferenza \\
+
+        \midrule
+
+        A15 &
+        Metriche e criteri di accettazione del modello &
+        Artefatto di validazione &
+        Definisce i riferimenti utilizzati per confrontare una nuova
+        versione di EfficientNet-B4 con il modello attualmente in uso
+        prima della sua adozione. &
+        \textbf{Input:} prestazioni della nuova versione e valori di
+        riferimento del modello attivo.
+        \textbf{Output:} valutazione basata su sensibilità HIGH,
+        falsi LOW e accuratezza complessiva, utilizzata nella decisione
+        di adozione o rollback. &
+        Validazione del modello \\
+
+        \bottomrule
+    \end{tabularx}
+
+    \caption{Asset relativi al feedback clinico e ai processi di aggiornamento di DermaTriage.}
+    \label{tab:asset-feedback-aggiornamento}
+\end{table}
+
+\subsection{Modelli e artefatti AI}
+La pipeline di DermaTriage utilizza più modelli con funzioni distinte e complementari. EfficientNet-B4 effettua la classificazione iniziale dell'urgenza, Qwen2-VL produce la descrizione clinica della lesione, BioMistral integra le informazioni disponibili nella sintesi clinica e all-MiniLM-L6-v2 genera le rappresentazioni vettoriali utilizzate dal
+sistema RAG. Al classificatore EfficientNet-B4 è inoltre associato il checkpoint contenente i parametri appresi utilizzati durante l'esecuzione.
+
+\begin{table}[H]
+    \centering
+    \small
+    \setstretch{1}
+    \setlength{\tabcolsep}{4pt}
+    \renewcommand{\arraystretch}{1.05}
+
+    \begin{tabularx}{\textwidth}{
+        >{\raggedright\arraybackslash}p{0.6cm}
+        >{\raggedright\arraybackslash}p{2.5cm}
+        >{\raggedright\arraybackslash}p{1.6cm}
+        X
+        X
+        >{\raggedright\arraybackslash}p{1.8cm}
+    }
+        \toprule
+
+        \textbf{ID} &
+        \textbf{Asset} &
+        \textbf{Tipo} &
+        \textbf{Funzione / utilizzo} &
+        \textbf{Input / output} &
+        \textbf{Fase} \\
+
+        \midrule
+
+        A16 &
+        Modello EfficientNet-B4 &
+        Modello di classificazione &
+        Analizza l'immagine dermatologica e fornisce la prima classificazione
+        dell'urgenza utilizzata dagli stadi successivi della pipeline. Il suo
+        comportamento è determinato dai parametri appresi durante l'addestramento
+        e caricati dal checkpoint attivo. &
+        \textbf{Input:} immagine dermatologica e parametri del modello caricati
+        dal checkpoint.
+        \textbf{Output:} classe HIGH, MEDIUM o LOW, confidence e probabilità
+        associate. &
+        Training e inferenza - Stage 1 \\
+
+        \midrule
+
+        A17 &
+        Modello Qwen2-VL &
+        Modello multimodale &
+        Analizza visivamente la lesione e genera una descrizione clinica
+        strutturata utilizzata negli stadi successivi della pipeline. &
+        \textbf{Input:} immagine dermatologica e prompt.
+        \textbf{Output:} descrizione di forma, bordi, colore, texture e
+        caratteristiche sospette della lesione. &
+        Inferenza - Stage 2 \\
+
+        \midrule
+
+        A18 &
+        Modello BioMistral &
+        Modello linguistico &
+        Integra le informazioni prodotte dagli stadi precedenti e la
+        sintomatologia disponibile per generare la sintesi clinica
+        complessiva del caso. &
+        \textbf{Input:} classificazione di urgenza, descrizione clinica,
+        casi simili, sintomi e prompt.
+        \textbf{Output:} urgenza finale, confidence, reasoning, azione
+        raccomandata e patologia prevista. &
+        Inferenza - Stage 4 \\
+
+        \midrule
+
+        A19 &
+        Modello all-MiniLM-L6-v2 &
+        Modello di embedding &
+        Genera le rappresentazioni vettoriali delle descrizioni cliniche
+        utilizzate per confrontare semanticamente il caso corrente con i
+        casi indicizzati in ChromaDB. &
+        \textbf{Input:} descrizione clinica testuale.
+        \textbf{Output:} embedding utilizzato per la ricerca dei casi
+        semanticamente simili. &
+        Retrieval - Stage 3 \\
+
+        \bottomrule
+    \end{tabularx}
+
+    \caption{Asset relativi ai modelli e agli artefatti AI di DermaTriage.}
+    \label{tab:asset-modelli-ai}
+\end{table}
+
+\subsection{Logica decisionale}
+Al termine della pipeline di inferenza, il risultato prodotto da BioMistral viene trasformato nella scala di priorità clinica utilizzata da DermaTriage. Questa conversione è regolata dall'Adaptation Layer, che applica criteri deterministici al livello di urgenza e alla relativa confidenza per assegnare la priorità finale da P1 a P4.
+
+\begin{table}[H]
+    \centering
+    \small
+    \setstretch{1}
+    \setlength{\tabcolsep}{4pt}
+    \renewcommand{\arraystretch}{1.05}
+
+    \begin{tabularx}{\textwidth}{
+        >{\raggedright\arraybackslash}p{0.6cm}
+        >{\raggedright\arraybackslash}p{2.5cm}
+        >{\raggedright\arraybackslash}p{1.6cm}
+        X
+        X
+        >{\raggedright\arraybackslash}p{1.8cm}
+    }
+        \toprule
+
+        \textbf{ID} &
+        \textbf{Asset} &
+        \textbf{Tipo} &
+        \textbf{Funzione / utilizzo} &
+        \textbf{Input / output} &
+        \textbf{Fase} \\
+
+        \midrule
+
+        A20 &
+        Regole dell'Adaptation Layer &
+        Logica decisionale &
+        Converte il livello di urgenza prodotto dalla pipeline nella
+        priorità clinica P1-P4 applicando le regole previste per il
+        triage. &
+        \textbf{Input:} livello di urgenza e relativa confidenza.
+        \textbf{Output:} priorità P1-P4, specialista indicato e
+        relativo SLA. &
+        Decisione finale \\
+
+        \bottomrule
+    \end{tabularx}
+
+    \caption{Asset relativo alla logica decisionale finale di DermaTriage.}
+    \label{tab:asset-logica-decisionale}
+\end{table}
+
+\subsection{Servizi applicativi e configurazione}
+L'esecuzione della pipeline di DermaTriage dipende anche dai servizi che gestiscono l'interazione con l'esterno e l'accesso alle funzionalità del sistema. La piattaforma B4 supporta lo scambio delle informazioni relative
+ai consulti, mentre il servizio applicativo FastAPI espone le funzionalità di DermaTriage. A questi componenti si  affianca la configurazione operativa, che definisce i parametri e le credenziali necessari al loro funzionamento.
+
+\begin{table}[H]
+    \centering
+    \small
+    \setstretch{1}
+    \setlength{\tabcolsep}{4pt}
+    \renewcommand{\arraystretch}{1.05}
+
+    \begin{tabularx}{\textwidth}{
+        >{\raggedright\arraybackslash}p{0.6cm}
+        >{\raggedright\arraybackslash}p{2.5cm}
+        >{\raggedright\arraybackslash}p{1.6cm}
+        X
+        X
+        >{\raggedright\arraybackslash}p{1.8cm}
+    }
+        \toprule
+
+        \textbf{ID} &
+        \textbf{Asset} &
+        \textbf{Tipo} &
+        \textbf{Funzione / utilizzo} &
+        \textbf{Input / output} &
+        \textbf{Fase} \\
+
+        \midrule
+
+        A21 &
+        Piattaforma B4 &
+        Servizio esterno &
+        Gestisce l'interazione con il paziente e rende disponibili a
+        DermaTriage le informazioni associate ai consulti, supportando
+        inoltre la restituzione e la successiva validazione dei risultati. &
+        \textbf{Input:} dati e documenti associati al consulto e risultati
+        prodotti da DermaTriage.
+        \textbf{Output:} informazioni del consulto, immagini e risultati
+        validati accessibili a DermaTriage tramite API. &
+        Acquisizione, integrazione e aggiornamento \\
+
+        \midrule
+
+        A22 &
+        Servizio applicativo FastAPI &
+        Servizio applicativo &
+        Espone le funzionalità di DermaTriage e gestisce le richieste
+        necessarie all'accesso alla pipeline di inferenza e alle altre
+        operazioni applicative. &
+        \textbf{Input:} richieste ricevute attraverso gli endpoint
+        applicativi.
+        \textbf{Output:} attivazione delle operazioni richieste e
+        restituzione dei relativi risultati. &
+        Esecuzione e integrazione \\
+
+        \midrule
+
+        A23 &
+        Configurazione operativa e credenziali &
+        Artefatto di configurazione &
+        Definisce i parametri necessari al caricamento delle risorse,
+        all'esecuzione della pipeline e all'autenticazione verso i servizi
+        protetti e la piattaforma B4. &
+        \textbf{Input:} variabili d'ambiente relative a percorsi, modelli,
+        parametri operativi e credenziali.
+        \textbf{Output:} configurazione utilizzata dai componenti di
+        DermaTriage durante esecuzione, integrazione e retraining. &
+        Configurazione ed esecuzione \\
+
+        \bottomrule
+    \end{tabularx}
+
+    \caption{Asset relativi ai servizi applicativi e alla configurazione di DermaTriage.}
+    \label{tab:asset-servizi-configurazione}
+\end{table}
