@@ -9,6 +9,16 @@ ciascun asset vengono esaminate le funzioni svolte, i relativi prerequisiti
 e i possibili failure mode, individuandone le cause e gli effetti che
 possono propagarsi agli altri componenti del sistema.
 
+I failure mode considerati possono derivare sia da condizioni accidentali
+sia da azioni intenzionali in grado di alterare il normale comportamento
+dell'asset. L'eventuale corrispondenza con specifiche minacce di sicurezza
+viene analizzata successivamente mediante STRIDE-AI.
+
+
+% ============================================================
+% A01
+% ============================================================
+
 \subsection{A01 -- Immagine dermatologica}
 
 L'asset A01 rappresenta l'immagine della lesione dermatologica acquisita
@@ -112,8 +122,8 @@ compito, ovvero i failure mode.
         presenza di artefatti oppure condizioni di acquisizione che
         rendono poco distinguibili le caratteristiche della lesione. &
         L'immagine non rappresenta con sufficiente chiarezza le
-        caratteristiche visive della lesione, riducendo l'affidabilità
-        delle elaborazioni effettuate da EfficientNet-B4 e Qwen2-VL. \\
+        caratteristiche della lesione, riducendo l'affidabilità delle
+        elaborazioni di EfficientNet-B4 e Qwen2-VL. \\
 
         \midrule
 
@@ -122,9 +132,9 @@ compito, ovvero i failure mode.
         Inquadratura parziale, porzione rilevante della lesione esclusa
         dall'immagine oppure acquisizione di una regione cutanea che non
         consente di osservare adeguatamente la lesione di interesse. &
-        I modelli ricevono una rappresentazione visiva incompleta del caso
-        e possono quindi produrre una classificazione dell'urgenza o una
-        descrizione clinica non rappresentative della lesione effettiva. \\
+        I modelli ricevono una rappresentazione visiva incompleta e possono
+        produrre una classificazione o una descrizione clinica non
+        rappresentative della lesione effettiva. \\
 
         \midrule
 
@@ -133,21 +143,31 @@ compito, ovvero i failure mode.
         Errata associazione tra immagine e consulto, selezione del
         documento non corrispondente al caso oppure errore nella gestione
         del riferimento utilizzato per recuperare l'immagine. &
-        La pipeline elabora un'immagine appartenente a un caso differente
-        rispetto alle informazioni cliniche associate alla richiesta.
-        Le inferenze prodotte risultano quindi riferite a dati non
-        coerenti tra loro e possono determinare un risultato di triage
-        non pertinente al paziente analizzato. \\
+        La pipeline elabora un'immagine non coerente con le informazioni
+        cliniche della richiesta, producendo inferenze riferite al caso
+        errato. \\
 
         \midrule
 
         FM01.4 &
+        Manipolazione intenzionale dell'immagine &
+        Alterazione deliberata del contenuto visivo, introduzione di
+        perturbazioni o modifica dell'immagine prima dell'invio alla
+        pipeline con l'obiettivo di influenzare l'elaborazione dei modelli. &
+        EfficientNet-B4 e Qwen2-VL ricevono un input apparentemente valido
+        ma alterato, con possibile modifica della classificazione
+        dell'urgenza o della descrizione clinica prodotta. \\
+
+        \midrule
+
+        FM01.5 &
         Immagine non disponibile o non utilizzabile dalla pipeline &
-        Formato non supportato, file danneggiato, errore nella lettura del file,
-        mancato recupero dell'immagine dal servizio di origine oppure errore
-        durante il trasferimento. &
-        EfficientNet-B4 e Qwen2-VL non dispongono di un input visivo utilizzabile
-        e non possono quindi completare normalmente le rispettive elaborazioni. \\
+        Formato non supportato, file danneggiato, errore nella lettura,
+        mancato recupero dal servizio di origine oppure errore durante
+        il trasferimento. &
+        EfficientNet-B4 e Qwen2-VL non dispongono di un input visivo
+        utilizzabile e non possono completare normalmente le rispettive
+        elaborazioni. \\
 
         \bottomrule
     \end{tabularx}
@@ -155,25 +175,29 @@ compito, ovvero i failure mode.
     \caption{Failure mode individuati per l'asset A01 -- Immagine dermatologica.}
     \label{tab:a01-failure-modes}
 \end{table}
-\subsection{A09 -- Dataset clinico RAG}
 
-L'asset A09 rappresenta il dataset clinico utilizzato dal sistema RAG,
-memorizzato nel file \texttt{RAG\_dataset.csv}. Il dataset contiene casi
-clinici dermatologici caratterizzati da informazioni demografiche,
-localizzazione della lesione, descrizione clinica, diagnosi e livello
-di urgenza.
 
-Durante l'inferenza, le descrizioni cliniche contenute nel dataset
-costituiscono la base informativa utilizzata nello Stage 3 per il recupero
-dei casi clinici più simili alla descrizione prodotta da Qwen2-VL.
-Il dataset rappresenta inoltre la base da cui vengono derivati i dati
-utilizzati per l'addestramento del classificatore EfficientNet-B4.
+\subsection{A13 -- Feedback clinico validato}
+
+L'asset A13 rappresenta il feedback clinico prodotto durante la revisione
+medica dei risultati generati da DermaTriage. Il feedback consente di
+confermare oppure correggere l'esito del sistema e viene associato al
+relativo caso clinico.
+
+Le correzioni validate possono essere utilizzate nei meccanismi di
+aggiornamento della pipeline. In particolare, contribuiscono
+all'evoluzione dei prompt utilizzati dai modelli generativi e, nei casi
+di disaccordo con la classificazione precedente, possono concorrere
+all'attivazione del retraining del classificatore EfficientNet-B4.
+
+Il feedback clinico rappresenta quindi un collegamento diretto tra la
+revisione medica e il ciclo di aggiornamento del sistema.
 
 
 \subsubsection{Funzioni e prerequisiti}
 
 Le principali funzioni dell'asset e i prerequisiti necessari al loro
-svolgimento sono riportati nella Tabella~\ref{tab:a09-functions}.
+svolgimento sono riportati nella Tabella~\ref{tab:a13-functions}.
 
 \begin{table}[H]
     \centering
@@ -195,39 +219,38 @@ svolgimento sono riportati nella Tabella~\ref{tab:a09-functions}.
 
         \midrule
 
-        F09.1 &
-        Rappresentazione dei casi clinici dermatologici &
-        Presenza di record clinici correttamente strutturati e contenenti
-        informazioni coerenti relative a descrizione della lesione,
-        diagnosi e livello di urgenza. \\
+        F13.1 &
+        Rappresentazione dell'esito della revisione medica &
+        Disponibilità del risultato diagnostico da revisionare e corretta
+        associazione tra valutazione del medico e relativo caso clinico. \\
 
         \midrule
 
-        F09.2 &
-        Fornitura della base informativa per il retrieval RAG &
-        Disponibilità delle descrizioni cliniche necessarie
-        all'indicizzazione e corretta associazione tra descrizione,
-        diagnosi, urgenza e relativo caso clinico. \\
+        F13.2 &
+        Fornitura di esempi validati per l'aggiornamento dei prompt &
+        Disponibilità di correzioni cliniche correttamente registrate e
+        utilizzabili dal meccanismo di evoluzione dei prompt. \\
 
         \midrule
 
-        F09.3 &
-        Supporto alla costruzione dei dati per l'addestramento &
-        Disponibilità di record e label utilizzabili per derivare
-        i dataset impiegati nel processo di training del classificatore. \\
+        F13.3 &
+        Supporto al retraining del classificatore &
+        Presenza di correzioni che evidenziano un disaccordo rispetto alla
+        classificazione precedente e disponibilità dei relativi dati clinici
+        necessari al processo di aggiornamento del modello. \\
 
         \bottomrule
     \end{tabularx}
 
-    \caption{Funzioni e prerequisiti dell'asset A09 -- Dataset clinico RAG.}
-    \label{tab:a09-functions}
+    \caption{Funzioni e prerequisiti dell'asset A13 -- Feedback clinico validato.}
+    \label{tab:a13-functions}
 \end{table}
 
 
 \subsubsection{Failure mode}
 
 Sulla base delle funzioni individuate vengono considerate le principali
-modalità con cui l'asset A09 può non svolgere correttamente il proprio
+modalità con cui l'asset A13 può non svolgere correttamente il proprio
 compito, ovvero i failure mode.
 
 \begin{table}[H]
@@ -252,60 +275,59 @@ compito, ovvero i failure mode.
 
         \midrule
 
-        FM09.1 &
-        Record clinici incompleti o incoerenti &
-        Valori mancanti, informazioni cliniche non coerenti tra loro,
-        errori nella compilazione dei record oppure associazione errata
-        tra attributi appartenenti allo stesso caso. &
-        Il dataset rappresenta in modo incompleto o non corretto i casi
-        clinici e può fornire informazioni non affidabili sia al sistema
-        RAG sia ai processi che utilizzano il dataset come base per la
-        preparazione dei dati di addestramento. \\
+        FM13.1 &
+        Feedback contenente istruzioni o contenuti avversariali &
+        Inserimento intenzionale nel feedback di testo costruito per
+        influenzare i successivi meccanismi di evoluzione dei prompt oppure
+        utilizzo di correzioni contenenti istruzioni non pertinenti al
+        contenuto clinico. &
+        Gli esempi utilizzati per aggiornare i prompt possono incorporare
+        contenuti avversariali e influenzare il comportamento successivo
+        di Qwen2-VL o BioMistral. \\
 
         \midrule
 
-        FM09.2 &
-        Associazione errata tra descrizione clinica e diagnosi o urgenza &
-        Label diagnostica o livello di urgenza non corrispondenti alla
-        descrizione clinica del caso oppure errore nell'associazione dei
-        campi appartenenti allo stesso record. &
-        Un caso clinico può essere recuperato come riferimento insieme
-        a una diagnosi o a un livello di urgenza non corretti. L'errore
-        può propagarsi allo Stage 3 e influenzare il contesto fornito
-        a BioMistral, oppure essere trasferito ai dati utilizzati
-        nell'addestramento del classificatore. \\
+        FM13.2 &
+        Feedback associato al caso clinico errato &
+        Collegamento non corretto tra correzione e diagnosi, utilizzo di
+        un identificativo del consulto errato oppure errore nella
+        registrazione della relazione tra feedback e caso. &
+        Una correzione valida può essere applicata a un caso differente,
+        introducendo informazioni incoerenti nel ciclo di aggiornamento. \\
 
         \midrule
 
-        FM09.3 &
-        Dataset non sufficientemente rappresentativo del dominio &
-        Distribuzione sbilanciata dei casi, sottorappresentazione di
-        determinate tipologie di lesione o caratteristiche della
-        popolazione non adeguatamente coperte dal dataset. &
-        Il sistema dispone di una base clinica meno rappresentativa
-        rispetto ai casi incontrati in esercizio. Il retrieval può
-        individuare riferimenti poco pertinenti per alcuni casi e i dati
-        derivati dal dataset possono contribuire a una capacità di
-        generalizzazione insufficiente del classificatore. \\
+        FM13.3 &
+        Feedback clinico incompleto o non disponibile &
+        Mancata registrazione della revisione, campi necessari non
+        valorizzati oppure indisponibilità della correzione nel momento
+        in cui deve essere utilizzata. &
+        I processi di aggiornamento dispongono di informazioni validate
+        insufficienti e possono non attivarsi o operare su una base
+        incompleta. \\
 
         \midrule
 
-        FM09.4 &
-        Dataset non disponibile o non correttamente accessibile &
-        File mancante o danneggiato, percorso configurato in modo errato,
-        errore durante la lettura oppure indisponibilità della risorsa
-        nel momento in cui deve essere utilizzata. &
-        Il sistema non dispone della base informativa necessaria per
-        costruire o aggiornare il supporto al retrieval RAG e i processi
-        che dipendono dal dataset non possono svolgersi secondo il normale
-        funzionamento previsto. \\
+        FM13.4 &
+        Feedback clinico alterato o non autentico &
+        Modifica non autorizzata di una correzione registrata, sostituzione
+        dell'esito validato oppure inserimento di feedback falsi da parte
+        di un soggetto non autorizzato. &
+        Il sistema può utilizzare informazioni manipolate per
+        l'aggiornamento dei prompt o per il retraining, propagando
+        l'alterazione alle versioni successive della pipeline. \\
 
         \bottomrule
     \end{tabularx}
 
-    \caption{Failure mode individuati per l'asset A09 -- Dataset clinico RAG.}
-    \label{tab:a09-failure-modes}
+    \caption{Failure mode individuati per l'asset A13 -- Feedback clinico validato.}
+    \label{tab:a13-failure-modes}
 \end{table}
+
+% ============================================================
+% A16
+% ============================================================
+
 \subsection{A16 -- Modello EfficientNet-B4}
 
 L'asset A16 riguarda il modello EfficientNet-B4 utilizzato per la
@@ -409,49 +431,42 @@ compito, ovvero i failure mode.
 
         FM16.1 &
         Estrazione inadeguata delle caratteristiche visive &
-        Qualità insufficiente dell'immagine, presenza di artefatti visivi oppure
-        inquadratura non adeguata della lesione. &
+        Qualità insufficiente dell'immagine, presenza di artefatti visivi
+        oppure inquadratura non adeguata della lesione. &
         Le caratteristiche ricavate dall'immagine non rappresentano
-        adeguatamente la lesione osservata, compromettendo l'informazione
-        utilizzata dal classificatore per determinare la classe di urgenza. \\
+        adeguatamente la lesione, compromettendo l'informazione utilizzata
+        per determinare la classe di urgenza. \\
 
         \midrule
 
         FM16.2 &
         Classificazione errata dell'urgenza &
-        Limiti di generalizzazione del modello, distribuzione dei casi operativi
-        differente da quella osservata durante l'addestramento oppure insufficiente
-        capacità discriminativa tra le classi di urgenza. &
-        Il modello assegna una classe HIGH, MEDIUM o LOW non coerente con
-        l'effettiva urgenza del caso. L'errore può determinare una sovrastima
-        o una sottostima dell'urgenza che si propaga agli stadi
-        successivi, contribuendo così ad una valutazione finale del triage
-        non appropriata. \\
+        Limiti di generalizzazione del modello, distribuzione dei casi
+        operativi differente da quella osservata durante l'addestramento
+        oppure insufficiente capacità discriminativa tra le classi. &
+        Il modello può sovrastimare o sottostimare l'urgenza, propagando
+        l'errore agli stadi successivi e contribuendo a una valutazione
+        finale non appropriata. \\
 
         \midrule
 
         FM16.3 &
         Confidence o probabilità non coerenti con la classificazione &
-        Calibrazione non adeguata delle probabilità prodotte dal modello
-        oppure comportamento eccessivamente confidente su campioni
-        incerti o poco rappresentativi. &
-        La classe restituita è accompagnata da valori che non riflettono
-        correttamente l'incertezza dell'inferenza. Gli stadi successivi
-        ricevono quindi una valutazione non attendibile della confidenza
-        associata alla classificazione. \\
+        Calibrazione non adeguata delle probabilità oppure comportamento
+        eccessivamente confidente su campioni incerti o poco
+        rappresentativi. &
+        Gli stadi successivi ricevono una stima non attendibile
+        dell'incertezza associata alla classificazione. \\
 
         \midrule
 
         FM16.4 &
-        Utilizzo di pesi o checkpoint non validi o non previsti &
-        Corruzione o incompletezza del checkpoint, incompatibilità tra
-        modello e parametri caricati, selezione di un checkpoint errato
-        oppure mancato allineamento tra la versione validata e quella
-        effettivamente utilizzata durante l'inferenza. &
-        Il classificatore può operare con un comportamento diverso da
-        quello previsto o validato, producendo classificazioni non
-        affidabili. Nei casi in cui i parametri risultino incompatibili
-        o non caricabili, l'inferenza può inoltre non essere completata. \\
+        Alterazione o sostituzione non autorizzata dei pesi o del checkpoint &
+        Modifica deliberata dei parametri del modello, sostituzione del
+        checkpoint attivo con una versione differente o compromessa,
+        oppure caricamento di una versione non validata. &
+        Il classificatore può produrre inferenze sistematicamente diverse
+        da quelle previste pur continuando ad apparire operativo. \\
 
         \midrule
 
@@ -459,12 +474,9 @@ compito, ovvero i failure mode.
         Output di inferenza incompleto o non disponibile &
         Errore durante l'esecuzione del modello, incompatibilità tra input,
         modello e parametri caricati oppure anomalia software che interrompe
-        l'elaborazione prima del suo completamento. &
-        Lo Stage 1 non restituisce tutti gli elementi previsti, quali classe,
-        confidence e probabilità, oppure non produce alcun risultato utilizzabile.
-        Gli stadi dipendenti dall'output del classificatore non dispongono quindi
-        delle informazioni necessarie per proseguire secondo il normale flusso
-        della pipeline. \\
+        l'elaborazione prima del completamento. &
+        Lo Stage 1 non fornisce classe, confidence o probabilità utilizzabili,
+        impedendo agli stadi dipendenti di proseguire normalmente. \\
 
         \bottomrule
     \end{tabularx}
@@ -472,3 +484,308 @@ compito, ovvero i failure mode.
     \caption{Failure mode individuati per l'asset A16 -- Modello EfficientNet-B4 e relativi pesi.}
     \label{tab:a16-failure-modes}
 \end{table}
+\subsection{A20 -- Regole dell'Adaptation Layer}
+
+L'asset A20 rappresenta l'insieme delle regole utilizzate
+dall'Adaptation Layer per convertire il livello di urgenza prodotto
+dalla pipeline nella scala clinica P1--P4 utilizzata dal sistema di
+triage.
+
+La conversione considera la classe di urgenza HIGH, MEDIUM o LOW e,
+per i casi classificati come HIGH, anche il livello di confidence.
+Un caso HIGH con confidence superiore a 0.85 viene associato alla
+priorità P1, mentre gli altri casi HIGH vengono assegnati a P2.
+Le classi MEDIUM e LOW vengono convertite rispettivamente in P3 e P4.
+
+L'Adaptation Layer produce inoltre le informazioni associate alla
+priorità finale, tra cui lo specialista indicato e il relativo SLA.
+Le regole di mapping costituiscono quindi il passaggio conclusivo tra
+il risultato interno della pipeline di inferenza e la rappresentazione
+clinica restituita dal sistema.
+
+
+\subsubsection{Funzioni e prerequisiti}
+
+Le principali funzioni dell'asset e i prerequisiti necessari al loro
+svolgimento sono riportati nella Tabella~\ref{tab:a20-functions}.
+
+\begin{table}[H]
+    \centering
+    \small
+    \setstretch{1}
+    \setlength{\tabcolsep}{4pt}
+    \renewcommand{\arraystretch}{1.08}
+
+    \begin{tabularx}{\textwidth}{
+        >{\raggedright\arraybackslash}p{1.1cm}
+        >{\raggedright\arraybackslash}p{3.8cm}
+        X
+    }
+        \toprule
+
+        \textbf{ID} &
+        \textbf{Funzione} &
+        \textbf{Prerequisiti} \\
+
+        \midrule
+
+        F20.1 &
+        Traduzione dell'output di BioMistral nel risultato operativo di triage &
+        Disponibilità di un output strutturato di BioMistral contenente il livello
+        finale di urgenza e la relativa confidence, insieme alla corretta
+        applicazione delle regole che determinano priorità P1--P4,
+        specialista e SLA. \\
+
+        \midrule
+
+        F20.2 &
+        Associazione delle indicazioni operative alla priorità assegnata &
+        Disponibilità della priorità P1--P4 determinata e corretta
+        corrispondenza con lo specialista e lo SLA previsti per il relativo
+        livello di presa in carico. \\
+
+        \bottomrule
+    \end{tabularx}
+
+    \caption{Funzioni e prerequisiti dell'asset A20 -- Regole dell'Adaptation Layer.}
+    \label{tab:a20-functions}
+\end{table}
+
+\subsubsection{Failure mode}
+
+Sulla base delle funzioni individuate vengono considerate le principali
+modalità con cui l'asset A20 può non svolgere correttamente il proprio
+compito, ovvero i failure mode.
+
+\begin{table}[H]
+    \centering
+    \footnotesize
+    \setstretch{1}
+    \setlength{\tabcolsep}{3pt}
+    \renewcommand{\arraystretch}{1.1}
+
+    \begin{tabularx}{\textwidth}{
+        >{\raggedright\arraybackslash}p{1.1cm}
+        >{\raggedright\arraybackslash}p{3cm}
+        >{\raggedright\arraybackslash}p{5cm}
+        X
+    }
+        \toprule
+
+        \textbf{ID} &
+        \textbf{Failure mode} &
+        \textbf{Possibili cause} &
+        \textbf{Effetti} \\
+
+        \midrule
+
+        FM20.1 &
+        Interpretazione errata dell'output di BioMistral &
+        Output strutturato incompleto o inatteso, errore nella lettura
+        dei campi restituiti, utilizzo di un valore differente da
+        \texttt{final\_urgency} oppure gestione non corretta della
+        confidence associata. &
+        L'Adaptation Layer utilizza informazioni diverse da quelle
+        effettivamente prodotte da BioMistral e può determinare una
+        priorità P1--P4 non coerente con il risultato dello Stage 4. \\
+
+        \midrule
+
+        FM20.2 &
+        Determinazione errata della priorità clinica &
+        Definizione non corretta della corrispondenza tra HIGH, MEDIUM,
+        LOW e P1--P4 oppure applicazione errata della soglia di confidence
+        utilizzata per distinguere i casi P1 e P2. &
+        Un output correttamente interpretato può essere trasformato in
+        una priorità clinica diversa da quella prevista dalle regole
+        dell'Adaptation Layer. \\
+
+        \midrule
+
+        FM20.3 &
+        Alterazione intenzionale delle regole di mapping &
+        Modifica non autorizzata della corrispondenza tra livelli di
+        urgenza e priorità, variazione deliberata della soglia di
+        confidence oppure sostituzione della logica di mapping prevista. &
+        Il sistema può continuare a produrre risultati formalmente validi
+        assegnando però sistematicamente priorità differenti da quelle
+        previste. \\
+
+        \midrule
+
+
+        FM20.4 &
+        Produzione incompleta o incoerente del risultato operativo &
+        Mancata valorizzazione di priorità, specialista o SLA oppure
+        associazione non coerente tra questi elementi nell'output
+        prodotto dall'Adaptation Layer. &
+        Il risultato finale del triage può risultare incompleto oppure
+        contenere indicazioni operative non coerenti con la priorità
+        assegnata. \\
+
+        \bottomrule
+    \end{tabularx}
+
+    \caption{Failure mode individuati per l'asset A20 -- Regole dell'Adaptation Layer.}
+    \label{tab:a20-failure-modes}
+\end{table}
+
+% ============================================================
+% A21
+% ============================================================
+
+\subsection{A21 -- Piattaforma B4}
+
+L'asset A21 rappresenta la piattaforma esterna B4, utilizzata come
+principale punto di interazione tra DermaTriage e il flusso clinico.
+Attraverso le API messe a disposizione dalla piattaforma, DermaTriage
+può recuperare i consulti e i relativi documenti, acquisire l'immagine
+dermatologica necessaria all'elaborazione e restituire il risultato
+diagnostico prodotto dalla pipeline.
+
+B4 supporta inoltre la gestione delle validazioni mediche associate ai
+risultati di triage. Gli esiti clinici validati possono essere recuperati
+da DermaTriage e utilizzati nei meccanismi di aggiornamento del sistema,
+tra cui l'evoluzione dei prompt e il retraining del classificatore
+EfficientNet-B4. L'accesso alle API B4 avviene mediante autenticazione
+basata su Bearer JWT.
+
+
+\subsubsection{Funzioni e prerequisiti}
+
+Le principali funzioni dell'asset e i prerequisiti necessari al loro
+svolgimento sono riportati nella Tabella~\ref{tab:a21-functions}.
+
+\begin{table}[H]
+    \centering
+    \small
+    \setstretch{1}
+    \setlength{\tabcolsep}{4pt}
+    \renewcommand{\arraystretch}{1.08}
+
+    \begin{tabularx}{\textwidth}{
+        >{\raggedright\arraybackslash}p{1.1cm}
+        >{\raggedright\arraybackslash}p{3.8cm}
+        X
+    }
+        \toprule
+
+        \textbf{ID} &
+        \textbf{Funzione} &
+        \textbf{Prerequisiti} \\
+
+        \midrule
+
+        F21.1 &
+        Raccolta e organizzazione delle informazioni del consulto &
+        Presenza di una richiesta di triage correttamente identificata e
+        associazione coerente tra dati clinici, informazioni demografiche
+        e documenti caricati dal paziente. \\
+
+        \midrule
+
+        F21.2 &
+        Messa a disposizione dei dati necessari a DermaTriage &
+        Presenza sulla piattaforma delle informazioni e dei documenti
+        associati al consulto e disponibilità delle API necessarie al loro
+        recupero. \\
+
+        \midrule
+
+        F21.3 &
+        Conservazione del risultato diagnostico e della validazione medica &
+        Corretta identificazione del consulto a cui associare il risultato
+        prodotto da DermaTriage e l'eventuale successiva valutazione del
+        personale medico. \\
+
+        \midrule
+
+        F21.4 &
+        Supporto al ciclo di aggiornamento di DermaTriage &
+        Disponibilità di consulti, immagini ed esiti clinici validati
+        utilizzabili dai processi di aggiornamento dei componenti della
+        pipeline. \\
+
+        \bottomrule
+    \end{tabularx}
+
+    \caption{Funzioni e prerequisiti dell'asset A21 -- Piattaforma B4.}
+    \label{tab:a21-functions}
+\end{table}
+
+
+\subsubsection{Failure mode}
+
+Sulla base delle funzioni individuate vengono considerate le principali
+modalità con cui l'asset A21 può non svolgere correttamente il proprio
+compito, ovvero i failure mode.
+
+\begin{table}[H]
+    \centering
+    \footnotesize
+    \setstretch{1}
+    \setlength{\tabcolsep}{3pt}
+    \renewcommand{\arraystretch}{1.1}
+
+    \begin{tabularx}{\textwidth}{
+        >{\raggedright\arraybackslash}p{1.1cm}
+        >{\raggedright\arraybackslash}p{3cm}
+        >{\raggedright\arraybackslash}p{5cm}
+        X
+    }
+        \toprule
+
+        \textbf{ID} &
+        \textbf{Failure mode} &
+        \textbf{Possibili cause} &
+        \textbf{Effetti} \\
+
+        \midrule
+
+        FM21.1 &
+        Dati del consulto incompleti o incoerenti &
+        Informazioni cliniche mancanti, documenti non presenti,
+        inconsistenza tra dati demografici, sintomi e documentazione
+        oppure registrazione incompleta del consulto. &
+        DermaTriage riceve una rappresentazione incompleta o incoerente
+        del caso, riducendo l'affidabilità delle successive elaborazioni. \\
+
+        \midrule
+
+        FM21.2 &
+        Manipolazione intenzionale dei dati o dei documenti del consulto &
+        Modifica non autorizzata di informazioni cliniche, sostituzione
+        dei documenti associati al consulto oppure alterazione dei
+        riferimenti utilizzati per identificare il caso. &
+        DermaTriage può elaborare informazioni intenzionalmente alterate
+        o appartenenti a un caso differente, producendo un risultato di
+        triage non corrispondente al caso reale. \\
+
+        \midrule
+
+        FM21.3 &
+        Stato delle informazioni non correttamente aggiornato sulla piattaforma &
+        Mancato aggiornamento del risultato diagnostico o della validazione,
+        registrazione incompleta dello stato del consulto oppure persistenza
+        di informazioni obsolete rispetto all'ultima elaborazione disponibile. &
+        B4 può mantenere uno stato del caso non aggiornato, compromettendo
+        la revisione medica o il successivo utilizzo del feedback clinico. \\
+
+        \midrule
+
+        FM21.4 &
+        Servizi B4 non disponibili o non accessibili &
+        Indisponibilità della piattaforma o delle API, problemi di
+        autenticazione, mancato rilascio o rinnovo del Bearer JWT,
+        interruzioni della comunicazione oppure sovraccarico intenzionale
+        delle funzionalità esposte. &
+        DermaTriage non può accedere alle funzionalità B4 necessarie,
+        causando l'interruzione parziale o completa del flusso integrato. \\
+
+        \bottomrule
+    \end{tabularx}
+
+    \caption{Failure mode individuati per l'asset A21 -- Piattaforma B4.}
+    \label{tab:a21-failure-modes}
+\end{table}
+

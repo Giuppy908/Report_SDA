@@ -1,0 +1,560 @@
+\chaptersection{4}{Security Properties e Threat Mapping}
+
+I failure mode individuati nel capitolo precedente vengono utilizzati come punto di
+partenza per identificare le proprietà di sicurezza rilevanti e le eventuali minacce
+applicabili agli asset selezionati. L'analisi segue l'approccio STRIDE-AI, nel quale
+le proprietà di sicurezza vengono definite attraverso il modello CIA$^3$-R e
+successivamente associate alle corrispondenti categorie STRIDE.
+
+La presenza di un failure mode non implica tuttavia necessariamente l'esistenza di
+una minaccia. Alcune condizioni possono infatti derivare da errori, malfunzionamenti
+o limiti intrinseci del sistema, mentre altre possono essere prodotte o sfruttate
+intenzionalmente da un soggetto avversario. Il mapping STRIDE-AI viene quindi
+applicato soltanto quando il failure mode presenta una concreta possibile origine
+intenzionale.
+
+\subsection{Proprietà di sicurezza CIA$^3$-R}
+
+Il modello CIA$^3$-R considera sei proprietà di sicurezza: autenticità, integrità,
+non ripudiabilità, confidenzialità, disponibilità e autorizzazione. Nel contesto di
+DermaTriage tali proprietà vengono selezionate in funzione delle caratteristiche
+dell'asset e del failure mode considerato, senza assumere che tutte siano rilevanti
+per ciascun componente.
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{|p{2.7cm}|X|p{3.2cm}|}
+\hline
+\textbf{Proprietà} & \textbf{Significato} & \textbf{Categoria STRIDE} \\
+\hline
+Authenticity &
+Possibilità di verificare l'origine dell'informazione o dell'output. &
+Spoofing \\
+\hline
+Integrity &
+Protezione da modifiche o inserimenti non autorizzati. &
+Tampering \\
+\hline
+Non-repudiation &
+Possibilità di attribuire un'operazione o un output senza che possa essere
+successivamente disconosciuto. &
+Repudiation \\
+\hline
+Confidentiality &
+Protezione delle informazioni da accessi o esposizioni non autorizzate. &
+Information Disclosure \\
+\hline
+Availability &
+Disponibilità dell'asset e capacità del sistema di produrre un output utile
+quando richiesto. &
+Denial of Service \\
+\hline
+Authorization &
+Utilizzo delle funzionalità e accesso agli output esclusivamente da parte di
+soggetti autorizzati. &
+Elevation of Privilege \\
+\hline
+\end{tabularx}
+\caption{Proprietà CIA$^3$-R e corrispondenza con le categorie STRIDE-AI.}
+\label{tab:cia3r-stride}
+\end{table}
+
+\subsection{Mapping STRIDE-AI}
+
+Per ciascun asset critico vengono analizzati i failure mode già individuati nella
+FMEA, identificando le proprietà CIA$^3$-R coinvolte e distinguendo le condizioni
+accidentali da quelle che possono derivare da un'azione intenzionale. Soltanto in
+quest'ultimo caso viene associata una categoria STRIDE-AI.
+
+\subsubsection{A01 -- Immagine dermatologica}
+
+L'immagine dermatologica costituisce l'input visivo utilizzato da EfficientNet-B4 e
+Qwen2-VL. I failure mode relativi alla qualità o all'adeguatezza dell'acquisizione
+possono compromettere l'affidabilità dell'elaborazione senza implicare necessariamente
+un attaccante. Diversamente, la manipolazione deliberata dell'immagine costituisce una
+violazione dell'integrità, mentre la sua indisponibilità può assumere natura di
+Denial of Service qualora sia provocata intenzionalmente.
+
+\begin{table}[H]
+\centering
+\small
+
+\begin{tabularx}{\textwidth}{|p{1.35cm}|X|p{3.5cm}|p{2.7cm}|p{2.4cm}|}
+\hline
+
+\textbf{ID} &
+\textbf{Failure mode} &
+\textbf{CIA\textsuperscript{3}-R} &
+\textbf{Natura} &
+\textbf{STRIDE-AI} \\
+
+\hline
+
+FM01.1 &
+Immagine di qualità insufficiente &
+Integrità in senso funzionale%
+\hyperlink{nota-integrita-funzionale}{\footnotemark} &
+Prevalentemente accidentale &
+-- \\
+
+\hline
+
+FM01.2 &
+Lesione rappresentata in modo incompleto o non adeguato &
+Integrità in senso funzionale &
+Prevalentemente accidentale &
+-- \\
+
+\hline
+
+FM01.3 &
+Immagine associata al caso clinico errato &
+Integrity; Authenticity se l'associazione viene falsificata intenzionalmente &
+Accidentale o intenzionale &
+Tampering; eventualmente Spoofing \\
+
+\hline
+
+FM01.4 &
+Manipolazione intenzionale dell'immagine &
+Integrity &
+Intenzionale &
+Tampering \\
+
+\hline
+
+FM01.5 &
+Immagine non disponibile o non utilizzabile dalla pipeline &
+Availability &
+Accidentale o intenzionale &
+Denial of Service se intenzionale \\
+
+\hline
+
+\end{tabularx}
+
+\caption{Mapping CIA\textsuperscript{3}-R e STRIDE-AI dei failure mode dell'asset A01.}
+\label{tab:a01-stride}
+
+\end{table}
+
+\footnotetext{%
+\hypertarget{nota-integrita-funzionale}{}%
+Con \textit{integrità in senso funzionale} si indica che il dato non è
+sufficientemente corretto, completo o adeguato rispetto alla funzione che deve
+svolgere nella pipeline; ciò non implica necessariamente una violazione della
+proprietà \textit{Integrity} nel significato STRIDE-AI.
+}
+\clearpage
+\subsubsection{A13 -- Feedback clinico validato}
+
+Il feedback clinico validato rappresenta il riferimento utilizzato dai meccanismi
+di aggiornamento della pipeline, contribuendo sia all'evoluzione dei prompt sia,
+nei casi previsti, al retraining di EfficientNet-B4. La sua alterazione o
+manipolazione può quindi propagarsi alle versioni successive del sistema, mentre
+errori di associazione o indisponibilità possono verificarsi anche in assenza di
+un'azione avversaria.
+
+\begin{table}[H]
+\centering
+\small
+
+\begin{tabularx}{\textwidth}{|p{1.35cm}|X|p{3.5cm}|p{2.7cm}|p{2.4cm}|}
+\hline
+
+\textbf{ID} &
+\textbf{Failure mode} &
+\textbf{CIA\textsuperscript{3}-R} &
+\textbf{Natura} &
+\textbf{STRIDE-AI} \\
+
+\hline
+
+FM13.1 &
+Feedback contenente istruzioni o contenuti avversariali &
+Integrity &
+Intenzionale &
+Tampering \\
+
+\hline
+
+FM13.2 &
+Feedback associato al caso clinico errato &
+Integrity; Authenticity se l'associazione viene falsificata intenzionalmente &
+Accidentale o intenzionale &
+Tampering; eventualmente Spoofing \\
+
+\hline
+
+FM13.3 &
+Feedback clinico incompleto o non disponibile &
+Availability &
+Prevalentemente accidentale; potenzialmente intenzionale &
+Denial of Service se intenzionale \\
+
+\hline
+
+FM13.4 &
+Feedback clinico alterato o non autentico &
+Integrity; Authenticity &
+Intenzionale &
+Tampering; Spoofing \\
+
+\hline
+
+\end{tabularx}
+
+\caption{Mapping CIA\textsuperscript{3}-R e STRIDE-AI dei failure mode dell'asset A13.}
+\label{tab:a13-stride}
+
+\end{table}
+\clearpage
+\subsubsection{A16 -- Modello EfficientNet-B4}
+
+EfficientNet-B4 esegue la classificazione iniziale dell'urgenza dermatologica e
+produce la classe HIGH, MEDIUM o LOW insieme alla confidence e alle probabilità
+associate. Alcuni failure mode riguardano limiti prestazionali o comportamenti
+non affidabili del modello e possono verificarsi anche in assenza di un attaccante;
+altri, come la modifica dei pesi o del checkpoint attivo, costituiscono invece
+condizioni direttamente riconducibili a una compromissione intenzionale.
+
+\begin{table}[H]
+\centering
+\small
+
+\begin{tabularx}{\textwidth}{|p{1.35cm}|X|p{3.5cm}|p{2.7cm}|p{2.4cm}|}
+\hline
+
+\textbf{ID} &
+\textbf{Failure mode} &
+\textbf{CIA\textsuperscript{3}-R} &
+\textbf{Natura} &
+\textbf{STRIDE-AI} \\
+
+\hline
+
+FM16.1 &
+Estrazione inadeguata delle caratteristiche visive &
+Integrità in senso funzionale &
+Prevalentemente accidentale &
+-- \\
+
+\hline
+
+FM16.2 &
+Classificazione errata dell'urgenza &
+Integrità in senso funzionale &
+Prevalentemente accidentale &
+-- \\
+
+\hline
+
+FM16.3 &
+Confidence o probabilità non coerenti con la classificazione &
+Integrità in senso funzionale &
+Prevalentemente accidentale &
+-- \\
+
+\hline
+
+FM16.4 &
+Alterazione o sostituzione non autorizzata dei pesi o del checkpoint &
+Integrity; Authenticity se viene sostituita la versione legittima del modello &
+Intenzionale &
+Tampering; eventualmente Spoofing \\
+
+\hline
+
+FM16.5 &
+Output di inferenza incompleto o non disponibile &
+Availability &
+Accidentale o intenzionale &
+Denial of Service se intenzionale \\
+
+\hline
+
+\end{tabularx}
+
+\caption{Mapping CIA\textsuperscript{3}-R e STRIDE-AI dei failure mode dell'asset A16.}
+\label{tab:a16-stride}
+
+\end{table}
+\clearpage
+\subsubsection{A20 -- Regole dell'Adaptation Layer}
+
+Le regole dell'Adaptation Layer determinano la conversione del risultato prodotto
+da BioMistral nella priorità clinica P1--P4 e nelle relative indicazioni operative.
+Errori nell'interpretazione dell'output o nella logica di mapping possono verificarsi
+anche in assenza di un attaccante, mentre la modifica deliberata delle regole o delle
+soglie costituisce una compromissione diretta della logica decisionale. Anche la
+produzione di un risultato operativo incompleto o inutilizzabile può compromettere
+la disponibilità dell'output finale.
+
+\begin{table}[H]
+\centering
+\small
+
+\begin{tabularx}{\textwidth}{|p{1.35cm}|X|p{3.5cm}|p{2.7cm}|p{2.4cm}|}
+\hline
+
+\textbf{ID} &
+\textbf{Failure mode} &
+\textbf{CIA\textsuperscript{3}-R} &
+\textbf{Natura} &
+\textbf{STRIDE-AI} \\
+
+\hline
+
+FM20.1 &
+Interpretazione errata dell'output di BioMistral &
+Integrità in senso funzionale &
+Prevalentemente accidentale &
+-- \\
+
+\hline
+
+FM20.2 &
+Determinazione errata della priorità clinica &
+Integrità in senso funzionale &
+Prevalentemente accidentale &
+-- \\
+
+\hline
+
+FM20.3 &
+Alterazione intenzionale delle regole di mapping &
+Integrity; Authorization se la modifica richiede privilegi non autorizzati &
+Intenzionale &
+Tampering; eventualmente Elevation of Privilege \\
+
+\hline
+
+FM20.4 &
+Produzione incompleta o incoerente del risultato operativo &
+Availability &
+Prevalentemente accidentale; potenzialmente intenzionale &
+Denial of Service se intenzionale \\
+
+\hline
+
+\end{tabularx}
+
+\caption{Mapping CIA\textsuperscript{3}-R e STRIDE-AI dei failure mode dell'asset A20.}
+\label{tab:a20-stride}
+
+\end{table}
+\clearpage
+\subsubsection{A21 -- Piattaforma B4}
+
+La piattaforma B4 gestisce la raccolta e la disponibilità delle informazioni associate
+ai consulti, supportando inoltre la restituzione dei risultati diagnostici e delle
+successive validazioni mediche. I failure mode possono riguardare sia la qualità e
+coerenza delle informazioni mantenute sulla piattaforma, sia alterazioni intenzionali
+dei dati o indisponibilità dei servizi esposti tramite API.
+
+\begin{table}[H]
+\centering
+\small
+
+\begin{tabularx}{\textwidth}{|p{1.35cm}|X|p{3.5cm}|p{2.7cm}|p{2.4cm}|}
+\hline
+
+\textbf{ID} &
+\textbf{Failure mode} &
+\textbf{CIA\textsuperscript{3}-R} &
+\textbf{Natura} &
+\textbf{STRIDE-AI} \\
+
+\hline
+
+FM21.1 &
+Dati del consulto incompleti o incoerenti &
+Integrità in senso funzionale &
+Prevalentemente accidentale &
+-- \\
+
+\hline
+
+FM21.2 &
+Manipolazione intenzionale dei dati o dei documenti del consulto &
+Integrity; Authenticity se vengono falsificati i riferimenti o l'origine dei dati &
+Intenzionale &
+Tampering; eventualmente Spoofing \\
+
+\hline
+
+FM21.3 &
+Stato delle informazioni non correttamente aggiornato sulla piattaforma &
+Integrità in senso funzionale &
+Prevalentemente accidentale &
+-- \\
+
+\hline
+
+FM21.4 &
+Servizi B4 non disponibili o non accessibili &
+Availability; Authorization se l'accesso viene impedito o alterato tramite privilegi non autorizzati &
+Accidentale o intenzionale &
+Denial of Service; eventualmente Elevation of Privilege \\
+\hline
+
+\end{tabularx}
+
+\caption{Mapping CIA\textsuperscript{3}-R e STRIDE-AI dei failure mode dell'asset A21.}
+\label{tab:a21-stride}
+
+\end{table}
+\clearpage
+\subsection{Mapping OWASP AI e Agentic AI}
+
+Il mapping STRIDE-AI viene completato confrontando le minacce individuate con i
+rischi descritti da OWASP per sistemi Machine Learning, applicazioni basate su
+modelli generativi e sistemi agentici. Le categorie OWASP vengono considerate solo
+quando descrivono una modalità di compromissione effettivamente pertinente
+all'architettura di DermaTriage.
+
+Per i componenti di classificazione e per gli asset tipici di una pipeline
+Machine Learning viene considerato l'OWASP Machine Learning Security Top Ten,
+mentre per Qwen2-VL, BioMistral e i meccanismi basati su prompt viene utilizzato
+l'OWASP GenAI LLM Top 10. Il mapping ha quindi funzione complementare rispetto a
+STRIDE-AI e permette di caratterizzare in modo più specifico alcune minacce legate
+all'impiego di componenti AI.
+
+Le principali corrispondenze individuate e i relativi impatti sul funzionamento di
+DermaTriage sono sintetizzati nella Tabella~\ref{tab:owasp-ai-mapping}.
+
+\begin{table}[htbp]
+\centering
+\small
+
+\begin{tabularx}{\textwidth}{|p{1.35cm}|p{1cm}|p{4.2cm}|X|}
+\hline
+
+\textbf{ID} &
+\textbf{Asset} &
+\textbf{Rischio OWASP} &
+\textbf{Impatto su DermaTriage} \\
+
+\hline
+
+FM01.4 &
+A01 &
+\href{https://owasp.org/www-project-machine-learning-security-top-10/docs/ML01_2023-Input_Manipulation_Attack}
+{ML01:2023 -- Input Manipulation Attack};
+\href{https://genai.owasp.org/llmrisk/llm01-prompt-injection/}
+{LLM01:2025 -- Prompt Injection}, per il ramo multimodale &
+La manipolazione dell'immagine può alterare le informazioni elaborate dai modelli
+e ridurre l'affidabilità della classificazione. Nel caso di Qwen2-VL, contenuti
+avversariali incorporati nell'immagine possono inoltre influenzare
+l'interpretazione multimodale. Ne risultano compromesse la sicurezza e
+l'affidabilità della pipeline, con possibile impatto sulla priorità clinica
+assegnata e quindi sulla clinical safety. \\
+
+\hline
+
+FM13.1 &
+A13 &
+\href{https://genai.owasp.org/llmrisk/llm01-prompt-injection/}
+{LLM01:2025 -- Prompt Injection};
+\href{https://genai.owasp.org/initiatives/top-10-for-llm-and-genai/}
+{LLM04:2025 -- Data and Model Poisoning}, se il contenuto influenza in modo
+persistente l'evoluzione dei prompt &
+Istruzioni avversariali presenti nel feedback possono influenzare il comportamento
+dei modelli e, se incorporate nei successivi aggiornamenti dei prompt, propagare
+l'effetto alle elaborazioni future. Il rischio interessa quindi sicurezza,
+affidabilità e accountability del processo di aggiornamento e può riflettersi
+sulla sicurezza clinica delle decisioni successive. \\
+
+\hline
+
+FM13.4 &
+A13 &
+\href{https://owasp.org/www-project-machine-learning-security-top-10/docs/ML02_2023-Data_Poisoning_Attack}
+{ML02:2023 -- Data Poisoning Attack};
+\href{https://genai.owasp.org/initiatives/top-10-for-llm-and-genai/}
+{LLM04:2025 -- Data and Model Poisoning} &
+Feedback alterati o non autentici possono contaminare i dati utilizzati per
+l'aggiornamento dei componenti della pipeline. La provenienza e l'affidabilità
+delle correzioni cliniche diventano quindi critiche per l'integrità del processo
+di retraining, la tracciabilità degli aggiornamenti e la qualità delle successive
+decisioni cliniche. \\
+
+\hline
+
+FM16.4 &
+A16 &
+\href{https://owasp.org/www-project-machine-learning-security-top-10/docs/ML10_2023-Model_Poisoning}
+{ML10:2023 -- Model Poisoning};
+\href{https://owasp.org/www-project-machine-learning-security-top-10/docs/ML06_2023-AI_Supply_Chain_Attacks.html}
+{ML06:2023 -- ML Supply Chain Attacks}, qualora la compromissione riguardi
+l'origine o la distribuzione del modello &
+L'alterazione dei pesi o la sostituzione del checkpoint modifica direttamente il
+comportamento di EfficientNet-B4. Una versione compromessa può produrre risultati
+apparentemente validi ma non affidabili, compromettendo sicurezza, reliability e
+accountability della versione distribuita e introducendo un rischio diretto per la
+clinical safety. \\
+
+\hline
+
+FM20.3 &
+A20 &
+\href{https://owasp.org/www-project-machine-learning-security-top-10/docs/ML09_2023-Output_Integrity_Attack}
+{ML09:2023 -- Output Integrity Attack} &
+La modifica delle regole che trasformano il risultato della pipeline nella scala
+P1--P4 altera il significato operativo dell'output anche quando i modelli a monte
+funzionano correttamente. Il rischio riguarda l'integrità della decisione,
+l'affidabilità e la tracciabilità della logica applicata e può modificare
+direttamente priorità e tempi di presa in carico del paziente. \\
+
+\hline
+
+FM21.2 &
+A21 &
+\href{https://owasp.org/www-project-machine-learning-security-top-10/docs/ML01_2023-Input_Manipulation_Attack}
+{ML01:2023 -- Input Manipulation Attack} &
+La manipolazione dei dati o dei documenti del consulto può introdurre nella
+pipeline informazioni cliniche non affidabili. Poiché B4 costituisce una delle
+sorgenti degli input utilizzati durante il triage, la compromissione può
+propagarsi agli stadi successivi, incidendo sull'integrità del processo,
+sull'affidabilità del risultato e sulla sicurezza clinica. \\
+
+\hline
+
+\end{tabularx}
+
+\caption{Mapping delle principali minacce di DermaTriage rispetto ai rischi OWASP AI e GenAI.}
+\label{tab:owasp-ai-mapping}
+
+\end{table}
+\FloatBarrier
+Per quanto riguarda la privacy, le minacce selezionate non evidenziano una
+violazione diretta della confidenzialità assimilabile a \textit{Sensitive
+Information Disclosure}. L'impatto sulla privacy rimane pertanto secondario
+rispetto a integrità, affidabilità e sicurezza clinica e non viene introdotto un
+mapping OWASP specifico in assenza di un failure mode che descriva l'esposizione
+non autorizzata di dati clinici.
+
+\subsubsection{Applicabilità dei rischi Agentic AI}
+
+I rischi dell'OWASP Top 10 for Agentic Applications vengono considerati
+separatamente, poiché richiedono caratteristiche di autonomia che non sono
+attualmente presenti in DermaTriage. Qwen2-VL e BioMistral producono output
+all'interno di una pipeline orchestrata dall'applicazione, mentre l'Adaptation
+Layer applica regole deterministiche; i modelli non selezionano autonomamente
+strumenti, non pianificano sequenze di azioni e non operano direttamente su B4 o
+su altri sistemi esterni.
+
+Alcune minacce individuate presentano comunque analogie con rischi agentici. La
+prompt injection di FM13.1 potrebbe evolvere verso \textit{ASI01 -- Agent Goal
+Hijack} qualora un modello compromesso fosse in grado di modificare autonomamente
+obiettivi o azioni della pipeline. Analogamente, la contaminazione persistente del
+contesto richiamerebbe \textit{ASI06 -- Memory \& Context Poisoning} in presenza
+di una memoria agentica utilizzata per guidare decisioni future.
+
+Tali categorie non vengono tuttavia assegnate direttamente all'architettura
+attuale, poiché l'evoluzione dei prompt di DermaTriage non costituisce una memoria
+autonoma di un agente e i modelli non possiedono capacità di pianificazione o
+azione indipendente. L'introduzione futura di autonomia, tool calling o memoria
+persistente estenderebbe invece la superficie di attacco e renderebbe pertinente
+un'applicazione diretta delle categorie Agentic AI.
