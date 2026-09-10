@@ -22,7 +22,7 @@
       "command": "bash",
       "args": [
         "-lc",
-        "cd \"$(dirname \"%DOC%\")\" && while [ ! -f main.tex ] && [ \"$PWD\" != \"/\" ]; do cd ..; done && mkdir -p .latex-build && latexmk -pdf -interaction=nonstopmode -synctex=1 -file-line-error -outdir=.latex-build main.tex && cp .latex-build/main.pdf ./main.pdf"
+        "cd \"$(dirname \"%DOC%\")\" && while [ ! -f main.tex ] && [ \"$PWD\" != \"/\" ]; do cd ..; done && mkdir -p .latex-build && latexmk -pdf -interaction=nonstopmode -synctex=1 -file-line-error -outdir=.latex-build main.tex && cp .latex-build/main.pdf ./main.pdf && cp .latex-build/main.synctex.gz ./main.synctex.gz"
       ]
     }
   ],
