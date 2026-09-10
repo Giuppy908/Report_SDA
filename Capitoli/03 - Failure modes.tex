@@ -60,6 +60,14 @@ svolgimento sono riportati nella Tabella~\ref{tab:a01-functions}.
         trasmissione dell'input a EfficientNet-B4 nello Stage 1 e a Qwen2-VL
         nello Stage 2. \\
 
+        \midrule
+
+        F01.4 &
+        Protezione della riservatezza dell'immagine &
+        Accesso all'immagine consentito esclusivamente ai soggetti e ai componenti
+        autorizzati durante l'acquisizione, il trasferimento e l'elaborazione
+        all'interno della pipeline. \\
+
         \bottomrule
     \end{tabularx}
 
@@ -129,7 +137,7 @@ compito, ovvero i failure mode.
 
         \midrule
 
-        FM01.4 &
+        \hypertarget{fm01-4}{FM01.4} &
         Manipolazione intenzionale dell'immagine &
         Alterazione deliberata del contenuto visivo, introduzione di
         perturbazioni o modifica dell'immagine prima dell'invio alla
@@ -148,6 +156,18 @@ compito, ovvero i failure mode.
         EfficientNet-B4 e Qwen2-VL non dispongono di un input visivo
         utilizzabile e non possono completare normalmente le rispettive
         elaborazioni. \\
+
+        \midrule
+
+        \hypertarget{fm01-6}{FM01.6} &
+        Esposizione non autorizzata dell'immagine dermatologica &
+        Accesso non autorizzato all'immagine durante il trasferimento o
+        l'elaborazione, configurazione errata dei controlli di accesso oppure
+        esposizione accidentale dell'input attraverso i componenti coinvolti
+        nel flusso di elaborazione. &
+        L'immagine dermatologica può essere resa accessibile a soggetti o
+        componenti non autorizzati, compromettendo la confidenzialità
+        dell'informazione clinica e la privacy del paziente. \\
 
         \bottomrule
     \end{tabularx}
@@ -333,7 +353,7 @@ Sulla base delle funzioni individuate vengono considerate le principali modalit�
 \endlastfoot
 
 
-FM13.1 &
+\hypertarget{fm13-1}{FM13.1} &
 
 Feedback contenente istruzioni o contenuti avversariali &
 
@@ -378,7 +398,7 @@ incompleta. \\
 \midrule
 
 
-FM13.4 &
+\hypertarget{fm13-4}{FM13.4} &
 
 Feedback clinico alterato o non autentico &
 
@@ -560,7 +580,7 @@ dell'incertezza associata alla classificazione. \\
 \midrule
 
 
-FM16.4 &
+\hypertarget{fm16-4}{FM16.4} &
 
 Alterazione o sostituzione non autorizzata dei pesi o del checkpoint &
 
@@ -718,7 +738,7 @@ Sulla base delle funzioni individuate vengono considerate le principali modalit�
 
         \midrule
 
-        FM20.3 &
+        \hypertarget{fm20-3}{FM20.3} &
         Alterazione intenzionale delle regole di mapping &
         Modifica non autorizzata della corrispondenza tra livelli di
         urgenza e priorità, variazione deliberata della soglia di
@@ -801,10 +821,11 @@ svolgimento sono riportati nella Tabella~\ref{tab:a21-functions}.
         \midrule
 
         F21.2 &
-        Messa a disposizione dei dati necessari a DermaTriage &
+        Messa a disposizione controllata dei dati necessari a DermaTriage &
         Presenza sulla piattaforma delle informazioni e dei documenti
-        associati al consulto e disponibilità delle API necessarie al loro
-        recupero. \\
+        associati al consulto, disponibilità delle API necessarie al loro
+        recupero e accesso consentito esclusivamente attraverso i meccanismi
+        di autenticazione e autorizzazione previsti. \\
 
         \midrule
 
@@ -897,6 +918,19 @@ compito, ovvero i failure mode.
         delle funzionalità esposte. &
         DermaTriage non può accedere alle funzionalità B4 necessarie,
         causando l'interruzione parziale o completa del flusso integrato. \\
+
+        \midrule
+
+        \hypertarget{fm21-5}{FM21.5} &
+        Esposizione non autorizzata dei dati clinici del consulto &
+        Configurazione errata dei controlli di accesso, compromissione o uso
+        improprio delle credenziali, dell'API key o del Bearer JWT, oppure
+        accesso alle informazioni del consulto da parte di soggetti o
+        componenti non autorizzati. &
+        Immagini dermatologiche, dati clinici e demografici, documenti,
+        risultati diagnostici o validazioni mediche possono essere resi
+        disponibili a soggetti non autorizzati, compromettendo direttamente
+        la confidenzialità delle informazioni e la privacy del paziente. \\
 
         \bottomrule
     \end{tabularx}

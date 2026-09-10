@@ -132,6 +132,14 @@ Denial of Service se intenzionale \\
 
 \hline
 
+FM01.6 &
+Esposizione non autorizzata dell'immagine dermatologica &
+Confidentiality &
+Accidentale o intenzionale &
+Information Disclosure se intenzionale \\
+
+\hline
+
 \end{tabularx}
 
 \caption{Mapping CIA\textsuperscript{3}-R e STRIDE-AI dei failure mode dell'asset A01.}
@@ -392,13 +400,16 @@ Prevalentemente accidentale &
 
 \hline
 
-FM21.4 &
-Servizi B4 non disponibili o non accessibili &
-Availability; Authorization se l'accesso viene impedito o alterato tramite privilegi non autorizzati &
-Accidentale o intenzionale &
-Denial of Service; eventualmente Elevation of Privilege \\
+
 \hline
 
+FM21.5 &
+Esposizione non autorizzata dei dati clinici del consulto &
+Confidentiality &
+Accidentale o intenzionale &
+Information Disclosure se intenzionale \\
+
+\hline
 \end{tabularx}
 
 \caption{Mapping CIA\textsuperscript{3}-R e STRIDE-AI dei failure mode dell'asset A21.}
@@ -409,152 +420,175 @@ Denial of Service; eventualmente Elevation of Privilege \\
 \subsection{Mapping OWASP AI e Agentic AI}
 
 Il mapping STRIDE-AI viene completato confrontando le minacce individuate con i
-rischi descritti da OWASP per sistemi Machine Learning, applicazioni basate su
-modelli generativi e sistemi agentici. Le categorie OWASP vengono considerate solo
-quando descrivono una modalità di compromissione effettivamente pertinente
-all'architettura di DermaTriage.
+rischi descritti da OWASP per applicazioni basate su modelli generativi e sistemi
+agentici. Le categorie OWASP vengono considerate soltanto quando descrivono una
+modalità di compromissione effettivamente pertinente all'architettura o ai failure
+mode già individuati per DermaTriage.
 
-Per i componenti di classificazione e per gli asset tipici di una pipeline
-Machine Learning viene considerato l'OWASP Machine Learning Security Top Ten,
-mentre per Qwen2-VL, BioMistral e i meccanismi basati su prompt viene utilizzato
-l'OWASP GenAI LLM Top 10. Il mapping ha quindi funzione complementare rispetto a
-STRIDE-AI e permette di caratterizzare in modo più specifico alcune minacce legate
-all'impiego di componenti AI.
+Per i componenti AI della pipeline viene preso come riferimento l'OWASP Top 10 for
+LLMs and GenAI Apps, utilizzato per ricondurre le minacce individuate a rischi
+specifici dell'impiego di modelli generativi, come la manipolazione degli input,
+la contaminazione dei dati o dei modelli e la compromissione dei componenti della
+supply chain. I rischi relativi ai sistemi agentici vengono invece considerati
+separatamente, poiché presuppongono capacità di autonomia, pianificazione e azione
+che non sono attualmente presenti in DermaTriage.
 
 Le principali corrispondenze individuate e i relativi impatti sul funzionamento di
 DermaTriage sono sintetizzati nella Tabella~\ref{tab:owasp-ai-mapping}.
+\clearpage
 
 \begin{table}[htbp]
-\centering
-\small
+    \centering
+    \small
+    \setstretch{1}
+    \setlength{\tabcolsep}{4pt}
+    \renewcommand{\arraystretch}{1.08}
 
-\begin{tabularx}{\textwidth}{|p{1.35cm}|p{1cm}|p{4.2cm}|X|}
-\hline
+    \begin{tabularx}{\textwidth}{
+        >{\raggedright\arraybackslash}p{1.1cm}
+        >{\raggedright\arraybackslash}p{1.1cm}
+        >{\raggedright\arraybackslash}p{4.3cm}
+        X
+    }
+        \toprule
 
-\textbf{ID} &
-\textbf{Asset} &
-\textbf{Rischio OWASP} &
-\textbf{Impatto su DermaTriage} \\
+        \textbf{ID} &
+        \textbf{Asset} &
+        \textbf{Rischio OWASP} &
+        \textbf{Impatto su DermaTriage} \\
 
-\hline
+        \midrule
 
-FM01.4 &
-A01 &
-\href{https://owasp.org/www-project-machine-learning-security-top-10/docs/ML01_2023-Input_Manipulation_Attack}
-{ML01:2023 -- Input Manipulation Attack};
-\href{https://genai.owasp.org/llmrisk/llm01-prompt-injection/}
-{LLM01:2025 -- Prompt Injection}, per il ramo multimodale &
-La manipolazione dell'immagine può alterare le informazioni elaborate dai modelli
-e ridurre l'affidabilità della classificazione. Nel caso di Qwen2-VL, contenuti
-avversariali incorporati nell'immagine possono inoltre influenzare
-l'interpretazione multimodale. Ne risultano compromesse la sicurezza e
-l'affidabilità della pipeline, con possibile impatto sulla priorità clinica
-assegnata e quindi sulla clinical safety. \\
+        \hyperlink{fm01-4}{FM01.4} &
+        A01 &
+        \href{https://genai.owasp.org/resource/owasp-genai-llm-top-10-2026/}
+        {\textit{LLM01:2026 -- Prompt Injection}}
+        (ramo multimodale Qwen2-VL) &
+        La manipolazione intenzionale dell'immagine può assumere, nel ramo multimodale
+        basato su Qwen2-VL, la forma di una prompt injection visiva, poiché contenuti o
+        perturbazioni incorporati nell'immagine possono influenzare il comportamento del
+        modello e alterare la descrizione clinica generata. Tale effetto può propagarsi
+        agli stadi successivi della pipeline, incidendo sull'affidabilità del risultato
+        finale e sulla sicurezza clinica. La stessa immagine manipolata può inoltre
+        influenzare anche lo Stage~1, causando una classificazione errata da parte di
+        EfficientNet-B4, pur non trattandosi in questo caso di prompt injection. \\
 
-\hline
+        \midrule
 
-FM13.1 &
-A13 &
-\href{https://genai.owasp.org/llmrisk/llm01-prompt-injection/}
-{LLM01:2025 -- Prompt Injection};
-\href{https://genai.owasp.org/initiatives/top-10-for-llm-and-genai/}
-{LLM04:2025 -- Data and Model Poisoning}, se il contenuto influenza in modo
-persistente l'evoluzione dei prompt &
-Istruzioni avversariali presenti nel feedback possono influenzare il comportamento
-dei modelli e, se incorporate nei successivi aggiornamenti dei prompt, propagare
-l'effetto alle elaborazioni future. Il rischio interessa quindi sicurezza,
-affidabilità e accountability del processo di aggiornamento e può riflettersi
-sulla sicurezza clinica delle decisioni successive. \\
+        \hyperlink{fm13-1}{FM13.1} &
+        A13 &
+        \href{https://genai.owasp.org/resource/owasp-genai-llm-top-10-2026/}
+        {\textit{LLM01:2026 -- Prompt Injection}};
+        \href{https://genai.owasp.org/resource/owasp-genai-llm-top-10-2026/}
+        {\textit{LLM05:2026 -- Data and Model Poisoning}}
+        se il contenuto viene incorporato nell'evoluzione dei prompt &
+        Istruzioni avversariali presenti nel feedback possono influenzare il
+        comportamento dei modelli quando il contenuto viene riutilizzato
+        nell'evoluzione dei prompt. Se tale influenza viene mantenuta nelle
+        versioni successive, la compromissione può propagarsi nel tempo,
+        incidendo sull'affidabilità e sull'accountability del processo di
+        aggiornamento e, indirettamente, sulla sicurezza delle successive
+        decisioni cliniche. \\
 
-\hline
+        \midrule
 
-FM13.4 &
-A13 &
-\href{https://owasp.org/www-project-machine-learning-security-top-10/docs/ML02_2023-Data_Poisoning_Attack}
-{ML02:2023 -- Data Poisoning Attack};
-\href{https://genai.owasp.org/initiatives/top-10-for-llm-and-genai/}
-{LLM04:2025 -- Data and Model Poisoning} &
-Feedback alterati o non autentici possono contaminare i dati utilizzati per
-l'aggiornamento dei componenti della pipeline. La provenienza e l'affidabilità
-delle correzioni cliniche diventano quindi critiche per l'integrità del processo
-di retraining, la tracciabilità degli aggiornamenti e la qualità delle successive
-decisioni cliniche. \\
+        \hyperlink{fm16-4}{FM16.4} &
+        A16 &
+        \href{https://genai.owasp.org/resource/owasp-genai-llm-top-10-2026/}
+        {\textit{LLM05:2026 -- Data and Model Poisoning}};
+        \href{https://genai.owasp.org/resource/owasp-genai-llm-top-10-2026/}
+        {\textit{LLM04:2026 -- Supply Chain}}
+        qualora sia compromessa la provenienza o la distribuzione del checkpoint &
+        L'alterazione dei pesi modifica direttamente il comportamento di
+        EfficientNet-B4, mentre la sostituzione del checkpoint con un artefatto
+        non affidabile introduce anche un problema di provenienza e supply chain.
+        Il classificatore può rimanere apparentemente operativo pur producendo
+        risultati sistematicamente alterati, con conseguenze sull'affidabilità
+        dello Stage~1, sulla tracciabilità della versione impiegata e sulla
+        priorità clinica finale. \\
 
-\hline
+        \midrule
 
-FM16.4 &
-A16 &
-\href{https://owasp.org/www-project-machine-learning-security-top-10/docs/ML10_2023-Model_Poisoning}
-{ML10:2023 -- Model Poisoning};
-\href{https://owasp.org/www-project-machine-learning-security-top-10/docs/ML06_2023-AI_Supply_Chain_Attacks.html}
-{ML06:2023 -- ML Supply Chain Attacks}, qualora la compromissione riguardi
-l'origine o la distribuzione del modello &
-L'alterazione dei pesi o la sostituzione del checkpoint modifica direttamente il
-comportamento di EfficientNet-B4. Una versione compromessa può produrre risultati
-apparentemente validi ma non affidabili, compromettendo sicurezza, reliability e
-accountability della versione distribuita e introducendo un rischio diretto per la
-clinical safety. \\
+        \hyperlink{fm20-3}{FM20.3} &
+        A20 &
+        \href{https://genai.owasp.org/resource/owasp-genai-llm-top-10-2026/}
+        {\textit{LLM07:2026 -- Misinformation}} &
+        L'alterazione intenzionale delle regole dell'Adaptation Layer può
+        trasformare un risultato correttamente prodotto dagli stadi precedenti
+        in una priorità P1--P4 non corrispondente a quella prevista. Il sistema
+        può quindi restituire un'indicazione clinica formalmente plausibile ma
+        fuorviante, che può essere considerata affidabile e utilizzata per la
+        successiva presa in carico del paziente. La compromissione incide
+        sull'affidabilità della decisione finale e può determinare una
+        sottostima o sovrastima dell'urgenza, con conseguenze dirette sulla
+        sicurezza clinica. \\
 
-\hline
+        \midrule
 
-FM20.3 &
-A20 &
-\href{https://owasp.org/www-project-machine-learning-security-top-10/docs/ML09_2023-Output_Integrity_Attack}
-{ML09:2023 -- Output Integrity Attack} &
-La modifica delle regole che trasformano il risultato della pipeline nella scala
-P1--P4 altera il significato operativo dell'output anche quando i modelli a monte
-funzionano correttamente. Il rischio riguarda l'integrità della decisione,
-l'affidabilità e la tracciabilità della logica applicata e può modificare
-direttamente priorità e tempi di presa in carico del paziente. \\
+        \hyperlink{fm21-5}{FM21.5} &
+        A21 &
+        \href{https://genai.owasp.org/resource/owasp-genai-llm-top-10-2026/}
+        {\textit{LLM02:2026 -- Sensitive Information Disclosure}} &
+        L'accesso o l'esposizione non autorizzata delle informazioni associate
+        al consulto può rendere disponibili a soggetti non autorizzati immagini
+        dermatologiche, dati clinici e demografici, documenti, risultati o
+        validazioni mediche. Nel contesto della pipeline AI il rischio è
+        riconducibile a \textit{Sensitive Information Disclosure} quando tali
+        informazioni vengono esposte attraverso il contesto utilizzato dai
+        modelli, i dati recuperati o gli output prodotti. L'impatto riguarda
+        direttamente la sicurezza e la privacy del paziente e può compromettere
+        l'accountability qualora non sia possibile ricostruire l'origine e
+        l'estensione della divulgazione. \\
 
-\hline
+        \bottomrule
+    \end{tabularx}
 
-FM21.2 &
-A21 &
-\href{https://owasp.org/www-project-machine-learning-security-top-10/docs/ML01_2023-Input_Manipulation_Attack}
-{ML01:2023 -- Input Manipulation Attack} &
-La manipolazione dei dati o dei documenti del consulto può introdurre nella
-pipeline informazioni cliniche non affidabili. Poiché B4 costituisce una delle
-sorgenti degli input utilizzati durante il triage, la compromissione può
-propagarsi agli stadi successivi, incidendo sull'integrità del processo,
-sull'affidabilità del risultato e sulla sicurezza clinica. \\
-
-\hline
-
-\end{tabularx}
-
-\caption{Mapping delle principali minacce di DermaTriage rispetto ai rischi OWASP AI e GenAI.}
-\label{tab:owasp-ai-mapping}
-
+    \caption{Mapping delle minacce di DermaTriage con corrispondenza pertinente
+    nei rischi OWASP GenAI 2026.}
+    \label{tab:owasp-ai-mapping}
 \end{table}
-\FloatBarrier
-Per quanto riguarda la privacy, le minacce selezionate non evidenziano una
-violazione diretta della confidenzialità assimilabile a \textit{Sensitive
-Information Disclosure}. L'impatto sulla privacy rimane pertanto secondario
-rispetto a integrità, affidabilità e sicurezza clinica e non viene introdotto un
-mapping OWASP specifico in assenza di un failure mode che descriva l'esposizione
-non autorizzata di dati clinici.
 
 \subsubsection{Applicabilità dei rischi Agentic AI}
 
 I rischi dell'OWASP Top 10 for Agentic Applications vengono considerati
-separatamente, poiché richiedono caratteristiche di autonomia che non sono
-attualmente presenti in DermaTriage. Qwen2-VL e BioMistral producono output
-all'interno di una pipeline orchestrata dall'applicazione, mentre l'Adaptation
-Layer applica regole deterministiche; i modelli non selezionano autonomamente
-strumenti, non pianificano sequenze di azioni e non operano direttamente su B4 o
-su altri sistemi esterni.
+separatamente, poiché riguardano sistemi nei quali i modelli non si limitano a
+produrre un output, ma possono pianificare attività, utilizzare strumenti,
+mantenere memoria o contesto persistente e generare autonomamente azioni con
+effetti sui sistemi collegati. Queste caratteristiche non sono presenti
+nell'architettura attuale di DermaTriage: Qwen2-VL e BioMistral operano come
+componenti di una pipeline orchestrata dall'applicazione, mentre l'Adaptation
+Layer applica regole deterministiche e i modelli non interagiscono autonomamente
+con B4 o con altri servizi esterni.
 
-Alcune minacce individuate presentano comunque analogie con rischi agentici. La
-prompt injection di FM13.1 potrebbe evolvere verso \textit{ASI01 -- Agent Goal
-Hijack} qualora un modello compromesso fosse in grado di modificare autonomamente
-obiettivi o azioni della pipeline. Analogamente, la contaminazione persistente del
-contesto richiamerebbe \textit{ASI06 -- Memory \& Context Poisoning} in presenza
-di una memoria agentica utilizzata per guidare decisioni future.
+Alcuni failure mode già associati ai rischi OWASP GenAI potrebbero tuttavia
+assumere una dimensione agentica in una futura evoluzione del sistema. In
+particolare, FM01.4 e FM13.1 potrebbero essere ricondotti a
+\href{https://genai.owasp.org/2025/12/09/owasp-top-10-for-agentic-applications-the-benchmark-for-agentic-security-in-the-age-of-autonomous-ai/}
+{\textit{ASI01 -- Agent Goal Hijack}}
+qualora una prompt injection visiva o contenuti avversariali presenti nel
+feedback riuscissero a deviare gli obiettivi o le azioni autonomamente
+selezionate da un agente.
 
-Tali categorie non vengono tuttavia assegnate direttamente all'architettura
-attuale, poiché l'evoluzione dei prompt di DermaTriage non costituisce una memoria
-autonoma di un agente e i modelli non possiedono capacità di pianificazione o
-azione indipendente. L'introduzione futura di autonomia, tool calling o memoria
-persistente estenderebbe invece la superficie di attacco e renderebbe pertinente
-un'applicazione diretta delle categorie Agentic AI.
+FM13.1 presenta inoltre una possibile relazione con
+\href{https://genai.owasp.org/2026/05/13/memory-is-a-feature-it-is-also-an-attack-surface/}
+{\textit{ASI06 -- Memory \& Context Poisoning}}
+qualora il contenuto contaminato venisse mantenuto come memoria o contesto
+persistente e riutilizzato nelle elaborazioni successive, rendendo l'effetto
+della compromissione persistente nel tempo.
+
+FM16.4 può invece essere associato a
+\href{https://genai.owasp.org/2025/12/09/owasp-top-10-for-agentic-applications-the-benchmark-for-agentic-security-in-the-age-of-autonomous-ai/}
+{\textit{ASI04 -- Agentic Supply Chain Vulnerabilities}}
+se un modello o checkpoint compromesso diventasse una dipendenza del runtime
+agentico, alterandone il comportamento e l'affidabilità complessiva.
+
+Infine, FM20.3 potrebbe contribuire a
+\href{https://genai.owasp.org/2025/12/09/owasp-top-10-for-agentic-applications-the-benchmark-for-agentic-security-in-the-age-of-autonomous-ai/}
+{\textit{ASI08 -- Cascading Failures}}
+qualora una priorità clinica alterata venisse utilizzata autonomamente da altri
+componenti o agenti per determinare azioni successive, propagando l'errore lungo
+il workflow.
+
+Tali categorie non sono quindi direttamente applicabili all'architettura
+attuale, ma diventerebbero rilevanti in presenza di autonomia, tool calling,
+memoria persistente o interazione diretta dei modelli con servizi esterni.
