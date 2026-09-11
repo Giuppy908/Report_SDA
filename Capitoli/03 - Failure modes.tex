@@ -1,180 +1,245 @@
 \chaptersection{3}{Failure Mode and Effects Analysis}
-La Failure Mode and Effects Analysis (FMEA) è una metodologia utilizzata per identificare le possibili modalità di guasto di un sistema e valutarne le conseguenze. L'analisi si concentra sugli asset ritenuti maggiormente significativi per il funzionamento della pipeline, a partire dall'insieme degli asset individuati nell'Asset Model. Per ciascun asset vengono esaminate le funzioni svolte, i relativi prerequisiti e i possibili failure mode, individuandone le cause e gli effetti che possono propagarsi agli altri componenti del sistema.
+La Failure Mode and Effects Analysis (FMEA) è una metodologia utilizzata per identificare le possibili modalità di guasto di un sistema e valutarne le conseguenze. L'analisi si concentra sugli asset ritenuti maggiormente significativi per il funzionamento della pipeline, a partire da quelli individuati nell'Asset Model. Per ciascun asset vengono esaminate le funzioni svolte, i relativi prerequisiti e i possibili failure mode, individuandone cause ed effetti sugli altri componenti del sistema.
 
 I failure mode considerati possono derivare sia da condizioni accidentali sia da azioni intenzionali in grado di alterare il normale comportamento dell'asset. L'eventuale corrispondenza con specifiche minacce di sicurezza viene analizzata successivamente mediante STRIDE-AI.
-
 
 % ============================================================
 % A01
 % ============================================================
 
 \subsection{A01 - Immagine dermatologica}
-L'asset A01 rappresenta l'immagine della lesione dermatologica acquisita per il caso clinico e utilizzata come principale informazione visiva della pipeline. L'immagine può essere recuperata nell'ambito del consulto gestito tramite B4 oppure fornita direttamente attraverso l'endpoint
-\texttt{/analyze}.
+L'asset A01 rappresenta l'immagine della lesione dermatologica acquisita per il caso clinico e utilizzata come principale informazione visiva della pipeline. L'immagine può essere recuperata tramite B4 oppure fornita direttamente attraverso l'endpoint \texttt{/analyze}.
 
-All'interno della pipeline, l'immagine viene utilizzata nello Stage 1 da EfficientNet-B4 per la classificazione iniziale dell'urgenza e nello Stage 2 da Qwen2-VL per la generazione della descrizione clinica della lesione. La correttezza e l'adeguatezza dell'immagine costituiscono quindi un prerequisito per le successive elaborazioni basate sull'informazione visiva.
-
+All'interno della pipeline, viene utilizzata nello Stage 1 da EfficientNet-B4 per la classificazione iniziale dell'urgenza e nello Stage 2 da Qwen2-VL per la generazione della descrizione clinica della lesione. La correttezza e l'adeguatezza dell'immagine costituiscono quindi un prerequisito per le successive elaborazioni visive.
 
 \subsubsection{Funzioni e prerequisiti}
+Le principali funzioni dell'asset e i prerequisiti necessari al loro svolgimento sono riportati nella Tabella~\ref{tab:a01-functions}.
 
-Le principali funzioni dell'asset e i prerequisiti necessari al loro
-svolgimento sono riportati nella Tabella~\ref{tab:a01-functions}.
+{
+\small
+\setstretch{1}
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.08}
 
-\begin{table}[H]
-    \centering
-    \small
-    \setstretch{1}
-    \setlength{\tabcolsep}{4pt}
-    \renewcommand{\arraystretch}{1.08}
+\begin{xltabular}{\textwidth}{
+    >{\raggedright\arraybackslash}p{1.1cm}
+    >{\raggedright\arraybackslash}p{3.8cm}
+    X
+}
 
-    \begin{tabularx}{\textwidth}{
-        >{\raggedright\arraybackslash}p{1.1cm}
-        >{\raggedright\arraybackslash}p{3.8cm}
-        X
-    }
-        \toprule
+\toprule
 
-        \textbf{ID} &
-        \textbf{Funzione} &
-        \textbf{Prerequisiti} \\
+\textbf{ID} &
+\textbf{Funzione} &
+\textbf{Prerequisiti} \\
 
-        \midrule
+\midrule
 
-        F01.1 &
-        Rappresentazione visiva della lesione &
-        Acquisizione di un'immagine che rappresenti in modo adeguato
-        la lesione dermatologica oggetto del consulto. \\
+\endfirsthead
 
-        \midrule
+\toprule
 
-        F01.2 &
-        Associazione dell'immagine al caso clinico &
-        Corretta corrispondenza tra l'immagine acquisita e il consulto
-        o la richiesta di analisi a cui essa appartiene. \\
+\textbf{ID} &
+\textbf{Funzione} &
+\textbf{Prerequisiti} \\
 
-        \midrule
+\midrule
 
-        F01.3 &
-        Fornitura dell'input visivo alla pipeline di inferenza &
-        Disponibilità dell'immagine in un formato utilizzabile e corretta
-        trasmissione dell'input a EfficientNet-B4 nello Stage 1 e a Qwen2-VL
-        nello Stage 2. \\
+\endhead
 
-        \midrule
+\multicolumn{3}{r}{\footnotesize Continua nella pagina successiva} \\
+\endfoot
 
-        F01.4 &
-        Protezione della riservatezza dell'immagine &
-        Accesso all'immagine consentito esclusivamente ai soggetti e ai componenti
-        autorizzati durante l'acquisizione, il trasferimento e l'elaborazione
-        all'interno della pipeline. \\
+\endlastfoot
 
-        \bottomrule
-    \end{tabularx}
 
-    \caption{Funzioni e prerequisiti dell'asset A01 - Immagine dermatologica.}
-    \label{tab:a01-functions}
-\end{table}
+F01.1 &
 
+Rappresentazione visiva della lesione &
+
+Acquisizione di un'immagine che rappresenti in modo adeguato
+la lesione dermatologica oggetto del consulto. \\
+
+\midrule
+
+
+F01.2 &
+
+Associazione dell'immagine al caso clinico &
+
+Corretta corrispondenza tra l'immagine acquisita e il consulto
+o la richiesta di analisi a cui essa appartiene. \\
+
+\midrule
+
+
+F01.3 &
+
+Fornitura dell'input visivo alla pipeline di inferenza &
+
+Disponibilità dell'immagine in un formato utilizzabile e corretta
+trasmissione dell'input a EfficientNet-B4 nello Stage 1 e a Qwen2-VL
+nello Stage 2. \\
+
+\midrule
+
+
+F01.4 &
+
+Protezione della riservatezza dell'immagine &
+
+Accesso all'immagine consentito esclusivamente ai soggetti e ai componenti
+autorizzati durante l'acquisizione, il trasferimento e l'elaborazione
+all'interno della pipeline. \\
+
+\bottomrule
+
+\caption{Funzioni e prerequisiti dell'asset A01 - Immagine dermatologica.}
+
+\label{tab:a01-functions}\\
+
+\end{xltabular}
+}
 
 \subsubsection{Failure mode}
+Sulla base delle funzioni individuate vengono considerate le principali modalità con cui l'asset A01 può non svolgere correttamente il proprio compito, ovvero i failure mode.
 
-Sulla base delle funzioni individuate vengono considerate le principali
-modalità con cui l'asset A01 può non svolgere correttamente il proprio
-compito, ovvero i failure mode.
+{
+\small
+\setstretch{1}
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.08}
 
-\begin{table}[H]
-    \centering
-    \small
-    \setstretch{1}
-    \setlength{\tabcolsep}{4pt}
-    \renewcommand{\arraystretch}{1.08}
+\begin{xltabular}{\textwidth}{
+    >{\raggedright\arraybackslash}p{1.1cm}
+    >{\raggedright\arraybackslash}p{3cm}
+    >{\raggedright\arraybackslash}p{5cm}
+    X
+}
 
-    \begin{tabularx}{\textwidth}{
-        >{\raggedright\arraybackslash}p{1.1cm}
-        >{\raggedright\arraybackslash}p{3cm}
-        >{\raggedright\arraybackslash}p{5cm}
-        X
-    }
-        \toprule
+\toprule
 
-        \textbf{ID} &
-        \textbf{Failure mode} &
-        \textbf{Possibili cause} &
-        \textbf{Effetti} \\
+\textbf{ID} &
+\textbf{Failure mode} &
+\textbf{Possibili cause} &
+\textbf{Effetti} \\
 
-        \midrule
+\midrule
 
-        FM01.1 &
-        Immagine di qualità insufficiente &
-        Sfocatura, illuminazione inadeguata, risoluzione insufficiente,
-        presenza di artefatti oppure condizioni di acquisizione che
-        rendono poco distinguibili le caratteristiche della lesione. &
-        L'immagine non rappresenta con sufficiente chiarezza le
-        caratteristiche della lesione, riducendo l'affidabilità delle
-        elaborazioni di EfficientNet-B4 e Qwen2-VL. \\
+\endfirsthead
 
-        \midrule
+\toprule
 
-        FM01.2 &
-        Lesione rappresentata in modo incompleto o non adeguato &
-        Inquadratura parziale, porzione rilevante della lesione esclusa
-        dall'immagine oppure acquisizione di una regione cutanea che non
-        consente di osservare adeguatamente la lesione di interesse. &
-        I modelli ricevono una rappresentazione visiva incompleta e possono
-        produrre una classificazione o una descrizione clinica non
-        rappresentativa della lesione effettiva. \\
+\textbf{ID} &
+\textbf{Failure mode} &
+\textbf{Possibili cause} &
+\textbf{Effetti} \\
 
-        \midrule
+\midrule
 
-        FM01.3 &
-        Immagine associata al caso clinico errato &
-        Errata associazione tra immagine e consulto, selezione del
-        documento non corrispondente al caso oppure errore nella gestione
-        del riferimento utilizzato per recuperare l'immagine. &
-        La pipeline elabora un'immagine non coerente con le informazioni
-        cliniche della richiesta, producendo inferenze riferite al caso
-        errato. \\
+\endhead
 
-        \midrule
+\multicolumn{4}{r}{\footnotesize Continua nella pagina successiva} \\
+\endfoot
 
-        \hypertarget{fm01-4}{FM01.4} &
-        Manipolazione intenzionale dell'immagine &
-        Alterazione deliberata del contenuto visivo, introduzione di
-        perturbazioni o modifica dell'immagine prima dell'invio alla
-        pipeline con l'obiettivo di influenzare l'elaborazione dei modelli. &
-        EfficientNet-B4 e Qwen2-VL ricevono un input apparentemente valido
-        ma alterato, con possibile modifica della classificazione
-        dell'urgenza o della descrizione clinica prodotta. \\
+\endlastfoot
 
-        \midrule
 
-        FM01.5 &
-        Immagine non disponibile o non utilizzabile dalla pipeline &
-        Formato non supportato, file danneggiato, errore nella lettura,
-        mancato recupero dal servizio di origine oppure errore durante
-        il trasferimento. &
-        EfficientNet-B4 e Qwen2-VL non dispongono di un input visivo
-        utilizzabile e non possono completare normalmente le rispettive
-        elaborazioni. \\
+FM01.1 &
 
-        \midrule
+Immagine di qualità insufficiente &
 
-        \hypertarget{fm01-6}{FM01.6} &
-        Esposizione non autorizzata dell'immagine dermatologica &
-        Accesso non autorizzato all'immagine durante il trasferimento o
-        l'elaborazione, configurazione errata dei controlli di accesso oppure
-        esposizione accidentale dell'input attraverso i componenti coinvolti
-        nel flusso di elaborazione. &
-        L'immagine dermatologica può essere resa accessibile a soggetti o
-        componenti non autorizzati, compromettendo la confidenzialità
-        dell'informazione clinica e la privacy del paziente. \\
+Sfocatura, illuminazione inadeguata, risoluzione insufficiente,
+presenza di artefatti oppure condizioni di acquisizione che
+rendono poco distinguibili le caratteristiche della lesione. &
 
-        \bottomrule
-    \end{tabularx}
+L'immagine non rappresenta con sufficiente chiarezza le
+caratteristiche della lesione, riducendo l'affidabilità delle
+elaborazioni di EfficientNet-B4 e Qwen2-VL. \\
 
-    \caption{Failure mode individuati per l'asset A01 - Immagine dermatologica.}
-    \label{tab:a01-failure-modes}
-\end{table}
+\midrule
+
+
+FM01.2 &
+
+Lesione rappresentata in modo incompleto o non adeguato &
+
+Inquadratura parziale, porzione rilevante della lesione esclusa
+dall'immagine oppure acquisizione di una regione cutanea che non
+consente di osservare adeguatamente la lesione di interesse. &
+
+I modelli ricevono una rappresentazione visiva incompleta e possono
+produrre una classificazione o una descrizione clinica non
+rappresentativa della lesione effettiva. \\
+
+\midrule
+
+
+FM01.3 &
+
+Immagine associata al caso clinico errato &
+
+Errata associazione tra immagine e consulto, selezione del
+documento non corrispondente al caso oppure errore nella gestione
+del riferimento utilizzato per recuperare l'immagine. &
+
+La pipeline elabora un'immagine non coerente con le informazioni
+cliniche della richiesta, producendo inferenze riferite al caso
+errato. \\
+
+\midrule
+
+FM01.4 \hypertarget{fm01-4}{} &
+
+Manipolazione intenzionale dell'immagine &
+
+Alterazione deliberata del contenuto visivo, introduzione di
+perturbazioni o modifica dell'immagine prima dell'invio alla
+pipeline con l'obiettivo di influenzare l'elaborazione dei modelli. &
+
+EfficientNet-B4 e Qwen2-VL ricevono un input apparentemente valido
+ma alterato, con possibile modifica della classificazione
+dell'urgenza o della descrizione clinica prodotta. \\
+
+\midrule
+
+
+FM01.5 &
+
+Immagine non disponibile o non utilizzabile dalla pipeline &
+
+Formato non supportato, file danneggiato, errore nella lettura,
+mancato recupero dal servizio di origine oppure errore durante
+il trasferimento. &
+
+EfficientNet-B4 e Qwen2-VL non dispongono di un input visivo
+utilizzabile e non possono completare normalmente le rispettive
+elaborazioni. \\
+
+\midrule
+
+
+FM01.6 \hypertarget{fm01-6}{} &
+
+Esposizione non autorizzata dell'immagine dermatologica &
+
+Accesso non autorizzato all'immagine durante il trasferimento o
+l'elaborazione, configurazione errata dei controlli di accesso oppure
+esposizione accidentale dell'input attraverso i componenti coinvolti
+nel flusso di elaborazione. &
+
+L'immagine dermatologica può essere resa accessibile a soggetti o
+componenti non autorizzati, compromettendo la confidenzialità
+dell'informazione clinica e la privacy del paziente. \\
+
+\bottomrule
+
+\caption{Failure mode individuati per l'asset A01 - Immagine dermatologica.}
+
+\label{tab:a01-failure-modes}\\
+
+\end{xltabular}
+}
 
 
 \subsection{A13 - Feedback clinico validato}
@@ -353,7 +418,7 @@ Sulla base delle funzioni individuate vengono considerate le principali modalit�
 \endlastfoot
 
 
-\hypertarget{fm13-1}{FM13.1} &
+FM13.1 \hypertarget{fm13-1}{} &
 
 Feedback contenente istruzioni o contenuti avversariali &
 
@@ -398,7 +463,7 @@ incompleta. \\
 \midrule
 
 
-\hypertarget{fm13-4}{FM13.4} &
+FM13.4 \hypertarget{fm13-4}{} &
 
 Feedback clinico alterato o non autentico &
 
@@ -580,7 +645,7 @@ dell'incertezza associata alla classificazione. \\
 \midrule
 
 
-\hypertarget{fm16-4}{FM16.4} &
+FM16.4\hypertarget{fm16-4}{} &
 
 Alterazione o sostituzione non autorizzata dei pesi o del checkpoint &
 
@@ -738,7 +803,7 @@ Sulla base delle funzioni individuate vengono considerate le principali modalit�
 
         \midrule
 
-        \hypertarget{fm20-3}{FM20.3} &
+        FM20.3 \hypertarget{fm20-3}{} &
         Alterazione intenzionale delle regole di mapping &
         Modifica non autorizzata della corrispondenza tra livelli di
         urgenza e priorità, variazione deliberata della soglia di
@@ -750,7 +815,7 @@ Sulla base delle funzioni individuate vengono considerate le principali modalit�
         \midrule
 
 
-        FM20.4 &
+        FM20.4 \hypertarget{fm20-4}{} &
         Produzione incompleta o incoerente del risultato operativo &
         Mancata valorizzazione di priorità, specialista o SLA oppure
         associazione non coerente tra questi elementi nell'output
@@ -771,26 +836,13 @@ Sulla base delle funzioni individuate vengono considerate le principali modalit�
 % ============================================================
 
 \subsection{A21 - Piattaforma B4}
+L'asset A21 rappresenta la piattaforma esterna B4, utilizzata come principale punto di interazione tra DermaTriage e il flusso clinico. Attraverso le API messe a disposizione dalla piattaforma, DermaTriage può recuperare i consulti e i relativi documenti, acquisire l'immagine dermatologica necessaria all'elaborazione e restituire il risultato diagnostico prodotto dalla pipeline.
 
-L'asset A21 rappresenta la piattaforma esterna B4, utilizzata come
-principale punto di interazione tra DermaTriage e il flusso clinico.
-Attraverso le API messe a disposizione dalla piattaforma, DermaTriage
-può recuperare i consulti e i relativi documenti, acquisire l'immagine
-dermatologica necessaria all'elaborazione e restituire il risultato
-diagnostico prodotto dalla pipeline.
-
-B4 supporta inoltre la gestione delle validazioni mediche associate ai
-risultati di triage. Gli esiti clinici validati possono essere recuperati
-da DermaTriage e utilizzati nei meccanismi di aggiornamento del sistema,
-tra cui l'evoluzione dei prompt e il retraining del classificatore
-EfficientNet-B4. L'accesso alle API B4 avviene mediante autenticazione
-basata su Bearer JWT.
-
+B4 supporta inoltre la gestione delle validazioni mediche associate ai risultati di triage. Gli esiti clinici validati possono essere recuperati a DermaTriage e utilizzati nei meccanismi di aggiornamento del sistema,
+tra cui l'evoluzione dei prompt e il retraining del classificatore EfficientNet-B4. L'accesso alle API B4 avviene mediante autenticazione basata su Bearer JWT.
 
 \subsubsection{Funzioni e prerequisiti}
-
-Le principali funzioni dell'asset e i prerequisiti necessari al loro
-svolgimento sono riportati nella Tabella~\ref{tab:a21-functions}.
+Le principali funzioni dell'asset e i prerequisiti necessari al loro svolgimento sono riportati nella Tabella~\ref{tab:a21-functions}.
 
 \begin{table}[H]
     \centering
@@ -852,90 +904,184 @@ svolgimento sono riportati nella Tabella~\ref{tab:a21-functions}.
 
 
 \subsubsection{Failure mode}
+Sulla base delle funzioni individuate vengono considerate le principali modalità con cui l'asset A21 può non svolgere correttamente il proprio compito, ovvero i failure mode.
 
-Sulla base delle funzioni individuate vengono considerate le principali
-modalità con cui l'asset A21 può non svolgere correttamente il proprio
-compito, ovvero i failure mode.
+% \begin{table}[H]
+%     \centering
+%     \footnotesize
+%     \setstretch{1}
+%     \setlength{\tabcolsep}{3pt}
+%     \renewcommand{\arraystretch}{1.1}
 
-\begin{table}[H]
-    \centering
-    \footnotesize
-    \setstretch{1}
-    \setlength{\tabcolsep}{3pt}
-    \renewcommand{\arraystretch}{1.1}
+%     \begin{tabularx}{\textwidth}{
+%         >{\raggedright\arraybackslash}p{1.1cm}
+%         >{\raggedright\arraybackslash}p{3cm}
+%         >{\raggedright\arraybackslash}p{5cm}
+%         X
+%     }
+%         \toprule
 
-    \begin{tabularx}{\textwidth}{
-        >{\raggedright\arraybackslash}p{1.1cm}
-        >{\raggedright\arraybackslash}p{3cm}
-        >{\raggedright\arraybackslash}p{5cm}
-        X
-    }
-        \toprule
+%         \textbf{ID} &
+%         \textbf{Failure mode} &
+%         \textbf{Possibili cause} &
+%         \textbf{Effetti} \\
 
-        \textbf{ID} &
-        \textbf{Failure mode} &
-        \textbf{Possibili cause} &
-        \textbf{Effetti} \\
+%         \midrule
 
-        \midrule
+%         FM21.1 &
+%         Dati del consulto incompleti o incoerenti &
+%         Informazioni cliniche mancanti, documenti non presenti,
+%         inconsistenza tra dati demografici, sintomi e documentazione
+%         oppure registrazione incompleta del consulto. &
+%         DermaTriage riceve una rappresentazione incompleta o incoerente
+%         del caso, riducendo l'affidabilità delle successive elaborazioni. \\
 
-        FM21.1 &
-        Dati del consulto incompleti o incoerenti &
-        Informazioni cliniche mancanti, documenti non presenti,
-        inconsistenza tra dati demografici, sintomi e documentazione
-        oppure registrazione incompleta del consulto. &
-        DermaTriage riceve una rappresentazione incompleta o incoerente
-        del caso, riducendo l'affidabilità delle successive elaborazioni. \\
+%         \midrule
 
-        \midrule
+%         FM21.2 &
+%         Manipolazione intenzionale dei dati o dei documenti del consulto &
+%         Modifica non autorizzata di informazioni cliniche, sostituzione
+%         dei documenti associati al consulto oppure alterazione dei
+%         riferimenti utilizzati per identificare il caso. &
+%         DermaTriage può elaborare informazioni intenzionalmente alterate
+%         o appartenenti a un caso differente, producendo un risultato di
+%         triage non corrispondente al caso reale. \\
 
-        FM21.2 &
-        Manipolazione intenzionale dei dati o dei documenti del consulto &
-        Modifica non autorizzata di informazioni cliniche, sostituzione
-        dei documenti associati al consulto oppure alterazione dei
-        riferimenti utilizzati per identificare il caso. &
-        DermaTriage può elaborare informazioni intenzionalmente alterate
-        o appartenenti a un caso differente, producendo un risultato di
-        triage non corrispondente al caso reale. \\
+%         \midrule
 
-        \midrule
+%         FM21.3 &
+%         Stato delle informazioni non correttamente aggiornato sulla piattaforma &
+%         Mancato aggiornamento del risultato diagnostico o della validazione,
+%         registrazione incompleta dello stato del consulto oppure persistenza
+%         di informazioni obsolete rispetto all'ultima elaborazione disponibile. &
+%         B4 può mantenere uno stato del caso non aggiornato, compromettendo
+%         la revisione medica o il successivo utilizzo del feedback clinico. \\
 
-        FM21.3 &
-        Stato delle informazioni non correttamente aggiornato sulla piattaforma &
-        Mancato aggiornamento del risultato diagnostico o della validazione,
-        registrazione incompleta dello stato del consulto oppure persistenza
-        di informazioni obsolete rispetto all'ultima elaborazione disponibile. &
-        B4 può mantenere uno stato del caso non aggiornato, compromettendo
-        la revisione medica o il successivo utilizzo del feedback clinico. \\
+%         \midrule
 
-        \midrule
+%         FM21.4 &
+%         Servizi B4 non disponibili o non accessibili &
+%         Indisponibilità della piattaforma o delle API, problemi di
+%         autenticazione, mancato rilascio o rinnovo del Bearer JWT,
+%         interruzioni della comunicazione oppure sovraccarico intenzionale
+%         delle funzionalità esposte. &
+%         DermaTriage non può accedere alle funzionalità B4 necessarie,
+%         causando l'interruzione parziale o completa del flusso integrato. \\
 
-        FM21.4 &
-        Servizi B4 non disponibili o non accessibili &
-        Indisponibilità della piattaforma o delle API, problemi di
-        autenticazione, mancato rilascio o rinnovo del Bearer JWT,
-        interruzioni della comunicazione oppure sovraccarico intenzionale
-        delle funzionalità esposte. &
-        DermaTriage non può accedere alle funzionalità B4 necessarie,
-        causando l'interruzione parziale o completa del flusso integrato. \\
+%         \midrule
 
-        \midrule
+%         \hypertarget{fm21-5}{FM21.5} &
+%         Esposizione non autorizzata dei dati clinici del consulto &
+%         Configurazione errata dei controlli di accesso, compromissione o uso
+%         improprio delle credenziali, dell'API key o del Bearer JWT, oppure
+%         accesso alle informazioni del consulto da parte di soggetti o
+%         componenti non autorizzati. &
+%         Immagini dermatologiche, dati clinici e demografici, documenti,
+%         risultati diagnostici o validazioni mediche possono essere resi
+%         disponibili a soggetti non autorizzati, compromettendo direttamente
+%         la confidenzialità delle informazioni e la privacy del paziente. \\
 
-        \hypertarget{fm21-5}{FM21.5} &
-        Esposizione non autorizzata dei dati clinici del consulto &
-        Configurazione errata dei controlli di accesso, compromissione o uso
-        improprio delle credenziali, dell'API key o del Bearer JWT, oppure
-        accesso alle informazioni del consulto da parte di soggetti o
-        componenti non autorizzati. &
-        Immagini dermatologiche, dati clinici e demografici, documenti,
-        risultati diagnostici o validazioni mediche possono essere resi
-        disponibili a soggetti non autorizzati, compromettendo direttamente
-        la confidenzialità delle informazioni e la privacy del paziente. \\
+%         \bottomrule
+%     \end{tabularx}
 
-        \bottomrule
-    \end{tabularx}
+%     \caption{Failure mode individuati per l'asset A21 - Piattaforma B4.}
+%     \label{tab:a21-failure-modes}
+% \end{table}
 
-    \caption{Failure mode individuati per l'asset A21 - Piattaforma B4.}
-    \label{tab:a21-failure-modes}
-\end{table}
+{
+\small
+\setstretch{1}
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.08}
 
+\begin{xltabular}{\textwidth}{
+    >{\raggedright\arraybackslash}p{1.1cm}
+    >{\raggedright\arraybackslash}p{3cm}
+    >{\raggedright\arraybackslash}p{5cm}
+    X
+}
+
+\toprule
+\textbf{ID} &
+\textbf{Failure mode} &
+\textbf{Possibili cause} &
+\textbf{Effetti} \\
+\midrule
+\endfirsthead
+
+\toprule
+\textbf{ID} &
+\textbf{Failure mode} &
+\textbf{Possibili cause} &
+\textbf{Effetti} \\
+\midrule
+\endhead
+
+\midrule
+\multicolumn{4}{r}{\footnotesize Continua nella pagina successiva} \\
+\endfoot
+
+\endlastfoot
+
+FM21.1 &
+Dati del consulto incompleti o incoerenti &
+Informazioni cliniche mancanti, documenti non presenti,
+inconsistenza tra dati demografici, sintomi e documentazione
+oppure registrazione incompleta del consulto. &
+DermaTriage riceve una rappresentazione incompleta o incoerente
+del caso, riducendo l'affidabilità delle successive elaborazioni. \\
+
+\midrule
+
+FM21.2 &
+Manipolazione intenzionale dei dati o dei documenti del consulto &
+Modifica non autorizzata di informazioni cliniche, sostituzione
+dei documenti associati al consulto oppure alterazione dei
+riferimenti utilizzati per identificare il caso. &
+DermaTriage può elaborare informazioni intenzionalmente alterate
+o appartenenti a un caso differente, producendo un risultato di
+triage non corrispondente al caso reale. \\
+
+\midrule
+
+FM21.3 &
+Stato delle informazioni non correttamente aggiornato sulla piattaforma &
+Mancato aggiornamento del risultato diagnostico o della validazione,
+registrazione incompleta dello stato del consulto oppure persistenza
+di informazioni obsolete rispetto all'ultima elaborazione disponibile. &
+B4 può mantenere uno stato del caso non aggiornato, compromettendo
+la revisione medica o il successivo utilizzo del feedback clinico. \\
+
+\midrule
+
+FM21.4 &
+Servizi B4 non disponibili o non accessibili &
+Indisponibilità della piattaforma o delle API, problemi di
+autenticazione, mancato rilascio o rinnovo del Bearer JWT,
+interruzioni della comunicazione oppure sovraccarico intenzionale
+delle funzionalità esposte. &
+DermaTriage non può accedere alle funzionalità B4 necessarie,
+causando l'interruzione parziale o completa del flusso integrato. \\
+
+\midrule
+
+FM21.5 \hypertarget{fm21-5}{} &
+Esposizione non autorizzata dei dati clinici del consulto &
+Configurazione errata dei controlli di accesso, compromissione o uso
+improprio delle credenziali, dell'API key o del Bearer JWT, oppure
+accesso alle informazioni del consulto da parte di soggetti o
+componenti non autorizzati. &
+Immagini dermatologiche, dati clinici e demografici, documenti,
+risultati diagnostici o validazioni mediche possono essere resi
+disponibili a soggetti non autorizzati, compromettendo direttamente
+la confidenzialità delle informazioni e la privacy del paziente. \\
+
+\bottomrule
+
+\caption{Failure mode individuati per l'asset A21 - Piattaforma B4.}
+\label{tab:a21-failure-modes}\\
+
+\end{xltabular}
+}
+
+\clearpage
