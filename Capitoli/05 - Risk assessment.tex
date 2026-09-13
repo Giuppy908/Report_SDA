@@ -1,0 +1,685 @@
+\chaptersection{5}{Risk Assessment}
+La prioritizzazione dei rischi viene effettuata mediante un approccio a due livelli, coerente con l'analisi sviluppata nei capitoli precedenti. In una prima fase vengono valutati tutti i failure mode individuati nella FMEA attraverso il Risk Priority Number (RPN), mentre in una fase successiva le minacce di sicurezza selezionate vengono ulteriormente analizzate mediante DREAD.
+
+L'RPN consente di confrontare i failure mode considerando tre fattori: la gravità delle conseguenze (\textit{Severity}), la probabilità relativa di occorrenza (\textit{Occurrence}) e la difficoltà di rilevazione prima che il failure produca effetti (\textit{Detection}). Il valore viene calcolato come:
+\[
+RPN = S \times O \times D
+\]
+con ciascun parametro valutato su una scala da 1 a 10. I punteggi non rappresentano probabilità statistiche assolute, ma stime qualitative motivate sulla base dell'architettura, delle cause e degli effetti già individuati nella FMEA.
+
+La valutazione DREAD viene invece applicata successivamente alle minacce di sicurezza ritenute maggiormente rilevanti, considerando \textit{Damage Potential}, \textit{Reproducibility}, \textit{Exploitability}, \textit{Affected Users} e \textit{Discoverability}. In questo modo l'RPN fornisce una prima valutazione della criticità dei failure mode, mentre DREAD permette di approfondire la priorità delle minacce dal punto di vista della sicurezza.
+
+
+\subsection{Valutazione RPN dei failure mode}
+Per ciascun failure mode vengono assegnati i valori di \textit{Severity}, \textit{Occurrence} e \textit{Detection} su una scala da 1 a 10. La valutazione è effettuata in modo comparativo rispetto al contesto specifico di DermaTriage, così da mantenere coerente l'assegnazione dei punteggi tra i diversi failure mode.
+
+In particolare, la \textit{Severity} assume valori più elevati quando il failure può incidere direttamente sulla priorità clinica, compromettere in modo persistente il comportamento della pipeline o causare un'esposizione significativa di dati clinici. L'\textit{Occurrence} cresce per condizioni che possono verificarsi più facilmente durante il normale esercizio del sistema, mentre viene ridotta per
+eventi che richiedono condizioni particolari o capacità specifiche da parte di un attaccante. La \textit{Detection} è invece maggiore quando il failure può rimanere nascosto pur lasciando il sistema apparentemente operativo, ed è minore quando l'anomalia risulta immediatamente evidente.
+
+I punteggi ottenuti non rappresentano quindi probabilità assolute, ma una misura relativa della criticità dei failure mode utile per confrontarli e supportare le successive fasi di prioritizzazione.
+
+{
+\small
+\setstretch{1}
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.08}
+
+\begin{xltabular}{\textwidth}{
+    >{\raggedright\arraybackslash}p{1.2cm}
+    X
+    >{\centering\arraybackslash}p{0.7cm}
+    >{\centering\arraybackslash}p{0.7cm}
+    >{\centering\arraybackslash}p{0.7cm}
+    >{\centering\arraybackslash}p{1.0cm}
+}
+
+\toprule
+
+\textbf{ID} &
+\textbf{Failure mode} &
+\textbf{S} &
+\textbf{O} &
+\textbf{D} &
+\textbf{RPN} \\
+
+\midrule
+
+\endfirsthead
+
+\toprule
+
+\textbf{ID} &
+\textbf{Failure mode} &
+\textbf{S} &
+\textbf{O} &
+\textbf{D} &
+\textbf{RPN} \\
+
+\midrule
+
+\endhead
+
+\multicolumn{6}{r}{\footnotesize Continua nella pagina successiva} \\
+\endfoot
+
+\endlastfoot
+
+
+FM01.1 &
+
+Immagine di qualità insufficiente &
+
+7 & 7 & 3 & 147 \\
+
+\midrule
+
+
+FM01.2 &
+
+Lesione rappresentata in modo incompleto o non adeguato &
+
+8 & 6 & 4 & 192 \\
+
+\midrule
+
+
+FM01.3 &
+
+Immagine associata al caso clinico errato &
+
+9 & 3 & 7 & 189 \\
+
+\midrule
+
+
+FM01.4 &
+
+Manipolazione intenzionale dell'immagine &
+
+9 & 4 & 7 & 252 \\
+
+\midrule
+
+
+FM01.5 &
+
+Immagine non disponibile o non utilizzabile dalla pipeline &
+
+7 & 4 & 2 & 56 \\
+
+\midrule
+
+
+FM01.6 &
+
+Esposizione non autorizzata dell'immagine dermatologica &
+
+7 & 3 & 7 & 147 \\
+
+\midrule
+
+
+FM13.1 &
+
+Feedback contenente istruzioni o contenuti avversariali &
+
+9 & 3 & 8 & 216 \\
+
+\midrule
+
+
+FM13.2 &
+
+Feedback associato al caso clinico errato &
+
+8 & 3 & 7 & 168 \\
+
+\midrule
+
+
+FM13.3 &
+
+Feedback clinico incompleto o non disponibile &
+
+6 & 4 & 3 & 72 \\
+
+\midrule
+
+
+FM13.4 &
+
+Feedback clinico alterato o non autentico &
+
+9 & 3 & 8 & 216 \\
+
+\midrule
+
+
+FM16.1 &
+
+Estrazione inadeguata delle caratteristiche visive &
+
+7 & 5 & 6 & 210 \\
+
+\midrule
+
+
+FM16.2 &
+
+Classificazione errata dell'urgenza &
+
+9 & 5 & 6 & 270 \\
+
+\midrule
+
+
+FM16.3 &
+
+Confidence o probabilità non coerenti con la classificazione &
+
+8 & 4 & 8 & 256 \\
+
+\midrule
+
+
+FM16.4 &
+
+Alterazione o sostituzione non autorizzata dei pesi o del checkpoint &
+
+10 & 2 & 9 & 180 \\
+
+\midrule
+
+
+FM16.5 &
+
+Output di inferenza incompleto o non disponibile &
+
+7 & 3 & 2 & 42 \\
+
+\midrule
+
+
+FM20.1 &
+
+Interpretazione errata dell'output di BioMistral &
+
+9 & 3 & 5 & 135 \\
+
+\midrule
+
+
+FM20.2 &
+
+Determinazione errata della priorità clinica &
+
+10 & 3 & 6 & 180 \\
+
+\midrule
+
+
+FM20.3 &
+
+Alterazione intenzionale delle regole di mapping &
+
+10 & 3 & 9 & 270 \\
+
+\midrule
+
+
+FM20.4 &
+
+Produzione incompleta o incoerente del risultato operativo &
+
+8 & 3 & 3 & 72 \\
+
+\midrule
+
+
+FM21.1 &
+
+Dati del consulto incompleti o incoerenti &
+
+8 & 4 & 4 & 128 \\
+
+\midrule
+
+
+FM21.2 &
+
+Manipolazione intenzionale dei dati o dei documenti del consulto &
+
+9 & 3 & 8 & 216 \\
+
+\midrule
+
+
+FM21.3 &
+
+Stato delle informazioni non correttamente aggiornato sulla piattaforma &
+
+7 & 4 & 6 & 168 \\
+
+\midrule
+
+
+FM21.4 &
+
+Servizi B4 non disponibili o non accessibili &
+
+8 & 4 & 2 & 64 \\
+
+\midrule
+
+
+FM21.5 &
+
+Esposizione non autorizzata dei dati clinici del consulto &
+
+10 & 3 & 8 & 240 \\
+
+\bottomrule
+
+\caption{Valutazione RPN dei failure mode di DermaTriage}
+
+\label{tab:rpn-failure-modes}\\
+
+\end{xltabular}
+}
+
+\subsection{Valutazione DREAD delle minacce}
+La valutazione DREAD viene applicata alle minacce individuate mediante il mapping STRIDE-AI, con l'obiettivo di ottenere una prioritizzazione comparativa degli scenari di attacco più rilevanti.
+
+Come primo criterio di selezione viene adottata, ai fini della presente analisi, una soglia pari a
+\[
+RPN \geq 180,
+\]
+così da concentrare l'attenzione sui failure mode caratterizzati da una criticità comparativamente elevata.
+
+Il superamento della soglia RPN non è tuttavia sufficiente. La FMEA comprende infatti sia condizioni accidentali sia failure mode riconducibili a un'azione avversariale, mentre DREAD viene utilizzato per la valutazione delle minacce di sicurezza. Vengono quindi mantenuti soltanto i failure mode per i quali il mapping STRIDE-AI consente di individuare una concreta componente intenzionale riconducibile a una categoria STRIDE. Un failure mode può pertanto presentare un RPN elevato senza essere necessariamente sottoposto a DREAD.
+
+Sulla base di tali criteri vengono sottoposti a DREAD i failure mode FM01.3, FM01.4, FM13.1, FM16.4, FM20.3, FM21.2 e FM21.5.
+
+Per ciascuna minaccia vengono valutati \textit{Damage Potential}, \textit{Reproducibility}, \textit{Exploitability}, \textit{Affected Users} e \textit{Discoverability}. Il punteggio ottenuto viene utilizzato come misura comparativa di priorità e non come valore assoluto del rischio, tenendo conto
+della componente soggettiva del metodo.
+
+Nell'assegnazione dei punteggi viene mantenuta coerenza con la precedente valutazione FMEA. In particolare, il \textit{Damage Potential} tiene conto della Severity già attribuita al failure mode e dell'eventuale propagazione della compromissione lungo la pipeline. Gli altri fattori vengono stimati considerando le caratteristiche concrete dell'architettura: possibilità di ripetere l'attacco,
+prerequisiti tecnici e privilegi necessari, numero di casi o componenti potenzialmente coinvolti e facilità di individuazione della superficie di attacco.
+
+Il punteggio complessivo è calcolato come media dei cinque valori DREAD. Ai soli fini della lettura comparativa dei risultati, nel presente lavoro vengono considerate ad alta priorità le minacce con media almeno pari a 7, a priorità media quelle con valore compreso tra 5 e 7 e a priorità bassa quelle con valore inferiore a 5.
+
+% {
+% \small
+% \setstretch{1}
+% \setlength{\tabcolsep}{3pt}
+% \renewcommand{\arraystretch}{1.08}
+
+% \begin{xltabular}{\textwidth}{
+%     >{\raggedright\arraybackslash}p{1.15cm}
+%     X
+%     >{\centering\arraybackslash}p{0.65cm}
+%     >{\centering\arraybackslash}p{0.65cm}
+%     >{\centering\arraybackslash}p{0.65cm}
+%     >{\centering\arraybackslash}p{0.65cm}
+%     >{\centering\arraybackslash}p{0.65cm}
+%     >{\centering\arraybackslash}p{1.0cm}
+%     >{\raggedright\arraybackslash}p{1.25cm}
+% }
+
+% \toprule
+
+% \textbf{ID} &
+% \textbf{Minaccia valutata} &
+% \textbf{D} &
+% \textbf{R} &
+% \textbf{E} &
+% \textbf{A} &
+% \textbf{D} &
+% \textbf{Media} &
+% \textbf{Priorità} \\
+
+% \midrule
+
+% \endfirsthead
+
+% \toprule
+
+% \textbf{ID} &
+% \textbf{Minaccia valutata} &
+% \textbf{D} &
+% \textbf{R} &
+% \textbf{E} &
+% \textbf{A} &
+% \textbf{D} &
+% \textbf{Media} &
+% \textbf{Priorità} \\
+
+% \midrule
+
+% \endhead
+
+% \multicolumn{9}{r}{\footnotesize Continua nella pagina successiva} \\
+% \endfoot
+
+% \endlastfoot
+
+
+% FM01.3 &
+% Falsificazione dell'associazione tra immagine e caso clinico &
+% 9 & 5 & 5 & 4 & 5 & 5.6 &
+% Media \\
+
+% \midrule
+
+% FM01.4 &
+% Manipolazione intenzionale dell'immagine &
+% 9 & 7 & 7 & 5 & 6 & 6.8 &
+% Media \\
+
+% \midrule
+
+% FM13.1 &
+% Inserimento di contenuti avversariali nel feedback clinico &
+% 9 & 6 & 5 & 8 & 5 & 6.6 &
+% Media \\
+
+% \midrule
+
+% FM16.4 &
+% Alterazione o sostituzione non autorizzata del modello &
+% 10 & 5 & 4 & 9 & 4 & 6.4 &
+% Media \\
+
+% \midrule
+
+% FM20.3 &
+% Alterazione intenzionale delle regole di mapping &
+% 10 & 8 & 4 & 9 & 5 & 7.2 &
+% Alta \\
+
+% \midrule
+
+% FM21.2 &
+% Manipolazione dei dati o dei documenti del consulto &
+% 9 & 6 & 5 & 4 & 6 & 6.0 &
+% Media \\
+
+% \midrule
+
+% FM21.5 &
+% Esposizione non autorizzata dei dati clinici &
+% 10 & 7 & 6 & 7 & 6 & 7.2 &
+% Alta \\
+
+% \bottomrule
+
+% \caption{Valutazione DREAD delle minacce selezionate per DermaTriage.}
+% \label{tab:dread-threats}\\
+
+% \end{xltabular}
+
+{
+\small
+\setstretch{1}
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.08}
+
+\begin{xltabular}{\textwidth}{
+    >{\raggedright\arraybackslash}p{1.25cm}
+    X
+    >{\centering\arraybackslash}p{0.65cm}
+    >{\centering\arraybackslash}p{0.65cm}
+    >{\centering\arraybackslash}p{0.65cm}
+    >{\centering\arraybackslash}p{0.65cm}
+    >{\centering\arraybackslash}p{0.65cm}
+    >{\centering\arraybackslash}p{1.2cm}
+    >{\centering\arraybackslash}p{1.6cm}
+}
+
+\toprule
+
+\textbf{ID} &
+\textbf{Minaccia valutata} &
+\textbf{D} &
+\textbf{R} &
+\textbf{E} &
+\textbf{A} &
+\textbf{D} &
+\textbf{Media} &
+\textbf{Priorità} \\
+
+\midrule
+
+\endfirsthead
+
+\toprule
+
+\textbf{ID} &
+\textbf{Minaccia valutata} &
+\textbf{D} &
+\textbf{R} &
+\textbf{E} &
+\textbf{A} &
+\textbf{D} &
+\textbf{Media} &
+\textbf{Priorità} \\
+
+\midrule
+
+\endhead
+
+\multicolumn{9}{r}{\footnotesize Continua nella pagina successiva} \\
+\endfoot
+
+\endlastfoot
+
+
+FM01.3 &
+Falsificazione dell'associazione tra immagine e caso clinico &
+9 & 5 & 5 & 4 & 5 & 5.6 &
+Media \\
+
+\midrule
+
+FM01.4 &
+Manipolazione intenzionale dell'immagine &
+9 & 8 & 7 & 5 & 6 & 7 &
+Alta \\
+
+\midrule
+
+FM13.1 &
+Inserimento di contenuti avversariali nel feedback clinico &
+9 & 6 & 5 & 8 & 5 & 6.6 &
+Media \\
+
+\midrule
+
+FM16.4 &
+Alterazione o sostituzione non autorizzata del modello &
+10 & 5 & 4 & 9 & 4 & 6.4 &
+Media \\
+
+\midrule
+
+FM20.3 &
+Alterazione intenzionale delle regole di mapping &
+10 & 8 & 4 & 9 & 5 & 7.2 &
+Alta \\
+
+\midrule
+
+FM21.2 &
+Manipolazione dei dati o dei documenti del consulto &
+9 & 6 & 5 & 4 & 6 & 6.0 &
+Media \\
+
+\midrule
+
+FM21.5 &
+Esposizione non autorizzata dei dati clinici &
+10 & 7 & 6 & 7 & 6 & 7.2 &
+Alta \\
+
+\bottomrule
+
+\caption{Valutazione DREAD delle minacce selezionate per DermaTriage}
+\label{tab:dread-threats}\\
+
+\end{xltabular}
+}
+
+I risultati evidenziano tre minacce a priorità alta: FM01.4, FM20.3 e FM21.5. La manipolazione intenzionale dell'immagine risulta particolarmente rilevante perché può essere ripetuta con relativa facilità e influenzare più stadi della pipeline. L'alterazione delle regole dell'Adaptation Layer può invece modificare in modo sistematico la priorità clinica pur lasciando il sistema apparentemente
+operativo, mentre l'esposizione non autorizzata dei dati clinici può coinvolgere informazioni sensibili associate a più consulti.
+
+FM13.1 e FM16.4 presentano una criticità prossima alla fascia alta. Nel primo caso, contenuti avversariali inseriti nel feedback possono propagarsi attraverso i successivi meccanismi di aggiornamento; nel secondo, la compromissione del modello può produrre effetti persistenti sull'intera pipeline, pur richiedendo capacità o privilegi maggiori e risultando quindi meno facilmente sfruttabile.
+
+FM01.3 e FM21.2 mantengono infine una priorità media, poiché i relativi effetti sono generalmente più circoscritti al singolo caso clinico rispetto alle minacce in grado di alterare stabilmente il comportamento del sistema o coinvolgere un numero maggiore di consulti.
+
+\subsection{Prioritizzazione finale}
+I risultati ottenuti mediante RPN e DREAD vengono sintetizzati attraverso una risk matrix qualitativa basata su due dimensioni: \textit{Impact} e \textit{Likelihood}. L'\textit{Impact} tiene conto principalmente della Severity attribuita nella FMEA e del Damage Potential valutato mediante DREAD,
+mentre la \textit{Likelihood} considera congiuntamente Occurrence, Reproducibility ed Exploitability.
+
+La risk matrix viene quindi utilizzata come sintesi delle valutazioni precedenti e non come metodo di scoring indipendente. Per rendere uniforme l'interpretazione dei risultati, la combinazione tra Impact e Likelihood viene ricondotta ai livelli di rischio riportati nella Tabella~\ref{tab:risk-matrix}.
+
+\begin{table}[htbp]
+    \centering
+    \small
+    \setstretch{1}
+    \renewcommand{\arraystretch}{1.2}
+
+    \begin{tabular}{
+        >{\centering\arraybackslash}p{2.5cm}
+        >{\centering\arraybackslash}p{2.3cm}
+        >{\centering\arraybackslash}p{2.3cm}
+        >{\centering\arraybackslash}p{2.3cm}
+    }
+
+        \toprule
+
+        \textbf{Impact / Likelihood} &
+        \textbf{Bassa} &
+        \textbf{Media} &
+        \textbf{Alta} \\
+
+        \midrule
+
+        \textbf{Alto} &
+        Medio &
+        Alto &
+        Molto alto \\
+
+        \midrule
+
+        \textbf{Medio} &
+        Basso &
+        Medio &
+        Alto \\
+
+        \midrule
+
+        \textbf{Basso} &
+        Basso &
+        Basso &
+        Medio \\
+
+        \bottomrule
+
+    \end{tabular}
+
+    \caption{Criterio qualitativo utilizzato nella risk matrix.}
+    \label{tab:risk-matrix}
+\end{table}
+
+Applicando tale criterio alle minacce già valutate mediante DREAD si ottiene la prioritizzazione finale riportata nella Tabella~\ref{tab:final-risk-prioritization}.
+
+\begin{table}[htbp]
+    \centering
+    \small
+    \setstretch{1}
+    \setlength{\tabcolsep}{5pt}
+    \renewcommand{\arraystretch}{1.1}
+
+    \begin{tabularx}{\textwidth}{
+        >{\raggedright\arraybackslash}p{1.2cm}
+        X
+        >{\centering\arraybackslash}p{1.7cm}
+        >{\centering\arraybackslash}p{1.8cm}
+        >{\centering\arraybackslash}p{1.8cm}
+    }
+
+        \toprule
+
+        \textbf{ID} &
+        \textbf{Minaccia} &
+        \textbf{Impact} &
+        \textbf{Likelihood} &
+        \textbf{Rischio} \\
+
+        \midrule
+
+        FM01.3 &
+        Falsificazione dell'associazione tra immagine e caso clinico &
+        Alto &
+        Media &
+        Alto \\
+
+        \midrule
+
+        FM01.4 &
+        Manipolazione intenzionale dell'immagine &
+        Alto &
+        Alta &
+        Molto alto \\
+
+        \midrule
+
+        FM13.1 &
+        Inserimento di contenuti avversariali nel feedback clinico &
+        Alto &
+        Media &
+        Alto \\
+
+        \midrule
+
+        FM16.4 &
+        Alterazione o sostituzione non autorizzata del modello &
+        Alto &
+        Bassa &
+        Medio \\
+
+        \midrule
+
+        FM20.3 &
+        Alterazione intenzionale delle regole di mapping &
+        Alto &
+        Media &
+        Alto \\
+
+        \midrule
+
+        FM21.2 &
+        Manipolazione dei dati o dei documenti del consulto &
+        Alto &
+        Media &
+        Alto \\
+
+        \midrule
+
+        FM21.5 &
+        Esposizione non autorizzata dei dati clinici &
+        Alto &
+        Media &
+        Alto \\
+
+        \bottomrule
+
+    \end{tabularx}
+
+    \caption{Prioritizzazione finale delle minacce mediante risk matrix.}
+    \label{tab:final-risk-prioritization}
+\end{table}
+
+L'esito della valutazione evidenzia FM01.4 come minaccia a rischio molto alto. FM01.3, FM13.1, FM20.3, FM21.2 e FM21.5 risultano invece a rischio alto, mentre FM16.4 presenta un rischio medio a causa della minore Likelihood, pur mantenendo un impatto elevato.
+
+I risultati ottenuti costituiscono la base per la selezione delle minacce da approfondire nei successivi threat scenario e threat tree.
