@@ -1,0 +1,593 @@
+\chaptersection{7}{Mitigation e Residual Risk}
+A partire dalle minacce approfondite nel Capitolo 6, vengono individuate le principali misure di mitigazione applicabili ai relativi percorsi di attacco, collegando ciascuna contromisura alle condizioni e alle precondizioni emerse nei threat tree.
+
+Le contromisure considerate nel seguito sono formulate come interventi di sicurezza applicabili ai percorsi di attacco individuati, con l'obiettivo di ridurre la probabilità di successo della minaccia, aumentarne la rilevabilità e, quando possibile, limitarne la propagazione lungo la pipeline. L'effetto di tali misure non implica tuttavia l'eliminazione completa del rischio: le condizioni che rimangono sfruttabili anche dopo l'applicazione delle contromisure vengono considerate nella successiva valutazione del rischio residuo.
+
+\subsection{FM01.4 - Manipolazione intenzionale dell'immagine}
+Il threat tree associato a FM01.4 individua quattro principali modalità di compromissione dell'immagine dermatologica: la fornitura diretta di un input avversariale, la modifica dell'immagine durante il trasferimento, la sua alterazione dopo l'acquisizione e prima dell'inferenza e l'inserimento di
+contenuti visivi progettati per influenzare Qwen2-VL. 
+
+Le mitigazioni devono pertanto agire sia sulla superficie di ingresso sia sulla protezione dell'immagine durante il suo percorso nella pipeline. Poiché un'immagine formalmente valida può comunque contenere perturbazioni o contenuti avversariali, i soli controlli sul formato del file non risultano sufficienti.
+Per ciascun percorso vengono quindi considerate separatamente le principali precondizioni individuate nel threat tree, associando a ciascuna di esse una misura volta a impedirne lo sfruttamento o a renderlo più facilmente rilevabile.
+
+{
+\small
+\setstretch{1}
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.07}
+
+\begin{xltabular}{\textwidth}{
+    >{\raggedright\arraybackslash}p{3.1cm}
+    X
+    X
+}
+
+\toprule
+
+\textbf{Percorso di attacco} &
+\textbf{Mitigazioni delle precondizioni} &
+\textbf{Effetto atteso} \\
+
+\midrule
+
+\endfirsthead
+
+\toprule
+
+\textbf{Percorso di attacco} &
+\textbf{Mitigazioni delle precondizioni} &
+\textbf{Effetto atteso} \\
+
+\midrule
+
+\endhead
+
+\multicolumn{3}{r}{\footnotesize Continua nella pagina successiva} \\
+\endfoot
+
+\endlastfoot
+
+
+Fornire un'immagine avversariale all'ingresso &
+
+1. Proteggere gli endpoint mediante API key o token autenticati e applicare
+rate limiting.
+
+2. Verificare la stabilità dell'inferenza rispetto a resize o ricompressione,
+segnalando variazioni anomale di classe o confidence.
+
+3. Decodificare e ricodificare lato server l'immagine nel formato e nelle
+dimensioni attese prima dell'inferenza. &
+
+Riduce la possibilità che un'immagine costruita intenzionalmente raggiunga
+EfficientNet-B4 e Qwen2-VL senza essere rilevata e rende più difficile
+mantenere perturbazioni efficaci dopo il preprocessing. \\
+
+\midrule
+
+
+Intercettare e modificare l'immagine durante il trasferimento &
+
+1. Utilizzare TLS con verifica del certificato tra B4 e DermaTriage.
+
+2. Associare all'immagine un HMAC-SHA-256 e verificarlo alla ricezione.
+
+3. Vincolare il file ricevuto al relativo \texttt{consulto\_id} e verificarne
+tipo e corretta decodifica. &
+
+Riduce la possibilità di intercettare, sostituire o modificare l'immagine
+durante il trasferimento e consente di rilevare alterazioni prima che il dato
+venga utilizzato dalla pipeline. \\
+
+\midrule
+
+
+Modificare l'immagine dopo l'acquisizione e prima dell'inferenza &
+
+1. Utilizzare un service account dedicato con permessi minimi sulle directory
+temporanee.
+
+2. Rendere l'immagine in sola lettura dopo l'acquisizione, limitando la
+scrittura alla sola fase iniziale.
+
+3. Calcolare un digest SHA-256 dopo l'acquisizione e verificarlo prima del
+caricamento nei modelli. &
+
+Riduce la possibilità che un soggetto con accesso all'ambiente di esecuzione
+modifichi silenziosamente un'immagine già acquisita e permette di rilevare
+alterazioni intervenute prima dell'inferenza. \\
+
+\midrule
+
+
+Inserire contenuti visivi avversariali destinati a Qwen2-VL &
+
+1. Rilevare testo sovrapposto o elementi estranei al contenuto clinico atteso.
+
+2. Vincolare Qwen2-VL tramite system prompt al solo compito di descrizione
+clinica, trattando l'immagine come input non fidato.
+
+3. Validare l'output e bloccare testo imperativo o campi estranei prima
+dell'invio al RAG e a BioMistral. &
+
+Riduce la probabilità che una visual prompt injection modifichi il
+comportamento di Qwen2-VL e limita la propagazione di una descrizione alterata
+verso il sistema RAG, BioMistral e gli stadi successivi. \\
+
+\bottomrule
+
+\caption{Mitigazioni proposte per FM01.4 in relazione alle precondizioni dei principali percorsi del threat tree}
+
+\label{tab:mitigazioni-fm01-4}\\
+
+\end{xltabular}
+}
+
+\subsection{FM13.1 - Contenuti avversariali nel feedback clinico}
+Il threat tree associato a FM13.1 individua tre modalità attraverso cui un feedback clinico contaminato può influenzare l'aggiornamento della pipeline: l'inserimento di contenuti avversariali direttamente durante la revisione, l'alterazione di un feedback già registrato e la successiva inclusione del contenuto compromesso nel processo di evoluzione dei prompt.
+
+Le mitigazioni devono quindi proteggere sia l'origine e la persistenza del feedback sia il suo utilizzo nel processo di aggiornamento. Particolare attenzione deve essere posta ai contenuti semanticamente avversariali ma clinicamente plausibili, che possono superare controlli esclusivamente sintattici e venire successivamente incorporati nelle nuove versioni dei prompt.
+
+{
+\small
+\setstretch{1}
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.07}
+
+\begin{xltabular}{\textwidth}{
+    >{\raggedright\arraybackslash}p{3.1cm}
+    X
+    X
+}
+
+\toprule
+
+\textbf{Percorso di attacco} &
+\textbf{Mitigazioni delle precondizioni} &
+\textbf{Effetto atteso} \\
+
+\midrule
+
+\endfirsthead
+
+\toprule
+
+\textbf{Percorso di attacco} &
+\textbf{Mitigazioni delle precondizioni} &
+\textbf{Effetto atteso} \\
+
+\midrule
+
+\endhead
+
+\multicolumn{3}{r}{\footnotesize Continua nella pagina successiva} \\
+\endfoot
+
+\endlastfoot
+
+
+Inserire un feedback avversariale all'origine &
+
+1. Proteggere le funzioni di revisione mediante autenticazione nominativa,
+MFA e autorizzazione RBAC per i ruoli abilitati.
+
+2. Preferire campi strutturati e valori ammessi per le correzioni, limitando
+il testo libero alle sole informazioni cliniche necessarie.
+
+3. Sottoporre i feedback destinati all'aggiornamento a una seconda
+validazione prima che possano essere utilizzati dal PromptManager. &
+
+Riduce la possibilità che un soggetto non autorizzato o un singolo account
+compromesso introduca contenuti avversariali e limita l'ingresso di feedback
+manipolati nel processo di aggiornamento. \\
+
+\midrule
+
+
+Alterare un feedback già registrato &
+
+1. Limitare l'accesso alle API e allo storage dei feedback mediante RBAC e
+permessi di scrittura separati da quelli di sola consultazione.
+
+2. Conservare le revisioni come versioni distinte, evitando la sovrascrittura
+non tracciata del record clinico precedentemente validato.
+
+3. Applicare HMAC ai record persistenti e mantenere audit log append-only
+delle operazioni di modifica. &
+
+Riduce la possibilità di modificare silenziosamente un feedback già validato
+e consente di rilevare alterazioni prima del suo riutilizzo nei processi di
+aggiornamento. \\
+
+\midrule
+
+
+Far includere il feedback contaminato nel processo di aggiornamento &
+
+1. Includere nella finestra di aggiornamento soltanto feedback esplicitamente
+approvati e non semplicemente le correzioni più recenti.
+
+2. Separare il contenuto del feedback dalle istruzioni del processo di
+evoluzione, trattandolo come dato non fidato all'interno del prompt.
+
+3. Validare ogni nuova versione dei prompt su casi di riferimento prima
+dell'attivazione, mantenendo versionamento e possibilità di rollback. &
+
+Riduce la probabilità che un feedback contaminato venga incorporato nei prompt
+attivi e limita la persistenza dell'alterazione nelle successive elaborazioni
+di Qwen2-VL o BioMistral. \\
+
+\bottomrule
+
+\caption{Mitigazioni proposte per FM13.1 in relazione alle precondizioni dei principali percorsi del threat tree}
+
+\label{tab:mitigazioni-fm13-1}\\
+
+\end{xltabular}
+}
+
+\subsection{FM20.3 - Alterazione delle regole dell'Adaptation Layer}
+Il threat tree associato a FM20.3 individua tre modalità attraverso cui un attaccante può compromettere la logica decisionale finale: la modifica diretta delle regole di mapping, l'alterazione dei parametri decisionali e il caricamento di una versione non autorizzata delle regole.
+
+Le mitigazioni devono quindi proteggere sia il codice e la configurazione dell'Adaptation Layer sia il processo attraverso cui tali elementi vengono modificati o resi operativi. Poiché un'alterazione può produrre output formalmente validi ma clinicamente non coerenti con le regole previste, è necessario affiancare ai controlli di accesso anche verifiche di integrità, versionamento e validazione del comportamento decisionale.
+
+{
+\small
+\setstretch{1}
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.07}
+
+\begin{xltabular}{\textwidth}{
+    >{\raggedright\arraybackslash}p{3.1cm}
+    X
+    X
+}
+
+\toprule
+
+\textbf{Percorso di attacco} &
+\textbf{Mitigazioni delle precondizioni} &
+\textbf{Effetto atteso} \\
+
+\midrule
+
+\endfirsthead
+
+\toprule
+
+\textbf{Percorso di attacco} &
+\textbf{Mitigazioni delle precondizioni} &
+\textbf{Effetto atteso} \\
+
+\midrule
+
+\endhead
+
+\multicolumn{3}{r}{\footnotesize Continua nella pagina successiva} \\
+\endfoot
+
+\endlastfoot
+
+
+Modificare direttamente la logica di mapping &
+
+1. Proteggere repository e componenti applicativi mediante RBAC, MFA e
+permessi di modifica limitati ai soli ruoli autorizzati.
+
+2. Richiedere code review e approvazione prima del merge di modifiche alla
+funzione di mapping.
+
+3. Eseguire test automatici che verifichino le corrispondenze
+HIGH/MEDIUM/LOW-P1/P4 e la soglia di confidence prima del deploy. &
+
+Riduce la possibilità di introdurre e rendere operativa una modifica non
+autorizzata della logica e permette di rilevare variazioni rispetto alle regole
+attese prima del rilascio. \\
+
+\midrule
+
+
+Alterare i parametri decisionali &
+
+1. Separare i parametri decisionali dalla configurazione modificabile dagli
+utenti e limitarne l'accesso in scrittura ai soli componenti autorizzati.
+
+2. Vincolare la soglia di confidence e gli altri valori critici a configurazioni
+versionate e sottoposte a controllo delle differenze.
+
+3. Validare automaticamente la configurazione rispetto a valori ammessi e a
+casi di test rappresentativi prima del caricamento. &
+
+Riduce la possibilità di modificare silenziosamente i parametri utilizzati
+dall'Adaptation Layer e rende rilevabili variazioni capaci di alterare
+sistematicamente l'assegnazione della priorità. \\
+
+\midrule
+
+
+Caricare una versione non autorizzata delle regole &
+
+1. Limitare l'accesso al meccanismo di deploy o aggiornamento mediante
+autenticazione forte e privilegi amministrativi separati.
+
+2. Firmare l'artefatto contenente le regole e verificarne la firma prima del
+caricamento da parte del servizio.
+
+3. Mantenere versionamento e hash della versione approvata, bloccando
+l'attivazione di artefatti non corrispondenti a una release autorizzata. &
+
+Riduce la possibilità di sostituire le regole con una versione alterata e
+impedisce l'attivazione di artefatti privi di provenienza o integrità
+verificabile. \\
+
+\bottomrule
+
+\caption{Mitigazioni proposte per FM20.3 in relazione alle precondizioni dei principali percorsi del threat tree}
+
+\label{tab:mitigazioni-fm20-3}\\
+
+\end{xltabular}
+}
+
+\subsection{FM21.5 - Esposizione non autorizzata dei dati clinici}
+
+Il threat tree associato a FM21.5 individua tre modalità attraverso cui un
+attaccante può ottenere accesso a informazioni cliniche riservate: la
+compromissione dei meccanismi di autenticazione, lo sfruttamento di controlli
+di autorizzazione insufficienti e l'accesso diretto alle risorse che
+memorizzano o trasportano i dati.
+
+Le mitigazioni devono quindi proteggere sia l'identità dei soggetti e dei
+componenti che accedono ai servizi, sia l'autorizzazione sulle singole risorse
+richieste, oltre ai dati conservati o trasferiti. Poiché un utente correttamente
+autenticato può comunque tentare di accedere a consulti appartenenti ad altri
+soggetti, autenticazione e autorizzazione devono essere trattate come controlli
+distinti.
+
+{
+\small
+\setstretch{1}
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.07}
+
+\begin{xltabular}{\textwidth}{
+    >{\raggedright\arraybackslash}p{3.1cm}
+    X
+    X
+}
+
+\toprule
+
+\textbf{Percorso di attacco} &
+\textbf{Mitigazioni delle precondizioni} &
+\textbf{Effetto atteso} \\
+
+\midrule
+
+\endfirsthead
+
+\toprule
+
+\textbf{Percorso di attacco} &
+\textbf{Mitigazioni delle precondizioni} &
+\textbf{Effetto atteso} \\
+
+\midrule
+
+\endhead
+
+\multicolumn{3}{r}{\footnotesize Continua nella pagina successiva} \\
+\endfoot
+
+\endlastfoot
+
+
+Compromettere i meccanismi di autenticazione &
+
+1. Proteggere gli account privilegiati mediante MFA e limitare l'uso di
+credenziali condivise.
+
+2. Applicare scadenza breve, rotazione e revoca di API key e JWT, evitando
+token persistenti oltre il necessario.
+
+3. Applicare rate limiting e rilevazione di tentativi anomali sugli endpoint
+di autenticazione e sulle API che espongono dati clinici. &
+
+Riduce la possibilità che credenziali o token compromessi vengano riutilizzati
+con successo e limita l'accesso prolungato agli endpoint contenenti dati
+clinici. \\
+
+\midrule
+
+
+Sfruttare controlli di autorizzazione insufficienti &
+
+1. Verificare lato server, per ogni richiesta, la relazione tra identità
+autenticata e \texttt{consulto\_id} richiesto.
+
+2. Applicare autorizzazione object-level anche a immagini, documenti,
+diagnosi e validazioni associate al consulto.
+
+3. Rifiutare identificativi o parametri modificati che facciano riferimento
+a risorse non appartenenti al soggetto autorizzato. &
+
+Riduce la possibilità che un utente autenticato acceda a consulti o documenti
+di altri soggetti mediante modifica degli identificativi o abuso dei propri
+privilegi. \\
+
+\midrule
+
+
+Accedere direttamente ai dati o ai canali di trasferimento &
+
+1. Cifrare database, backup e file persistenti contenenti dati clinici e
+limitare l'accesso mediante account di servizio dedicati.
+
+2. Proteggere file temporanei e log mediante permessi minimi, evitando la
+registrazione di dati clinici non necessari.
+
+3. Utilizzare TLS con verifica del certificato per le comunicazioni tra B4 e
+DermaTriage e per gli altri trasferimenti contenenti dati sensibili. &
+
+Riduce la possibilità di estrarre informazioni direttamente dallo storage,
+dai file ausiliari o dal traffico di rete senza utilizzare i normali
+meccanismi applicativi. \\
+
+\bottomrule
+
+\caption{Mitigazioni proposte per FM21.5 in relazione alle precondizioni dei principali percorsi del threat tree}
+
+\label{tab:mitigazioni-fm21-5}\\
+
+\end{xltabular}
+}
+
+\subsection{Valutazione del rischio residuo}
+A seguito delle mitigazioni individuate, le quattro minacce vengono rivalutate utilizzando la stessa risk matrix qualitativa adottata nel Capitolo 5. Non viene quindi introdotto un nuovo metodo di scoring: Impact e Likelihood vengono riesaminati considerando l'effetto delle contromisure sui percorsi e sulle precondizioni individuate nei threat tree.
+
+La rivalutazione considera sia la capacità delle misure preventive di rendere più difficile il completamento dell'attacco, sia i controlli di detection e recovery che possono limitarne gli effetti o impedirne la propagazione. Il livello residuo viene quindi ricavato combinando nuovamente Impact e Likelihood secondo la risk matrix già utilizzata nella prioritizzazione iniziale.
+
+{
+\small
+\setstretch{1}
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.08}
+
+\begin{xltabular}{0.75\textwidth}{
+    >{\raggedright\arraybackslash}p{1.5cm}
+    >{\raggedright\arraybackslash}p{2.4cm}
+    >{\raggedright\arraybackslash}p{2.2cm}
+    >{\raggedright\arraybackslash}p{2.5cm}
+    >{\raggedright\arraybackslash}X
+}
+
+\toprule
+
+\textbf{ID} &
+\textbf{Rischio iniziale} &
+\textbf{Impact residuo} &
+\textbf{Likelihood residua} &
+\textbf{Rischio residuo} \\
+
+\midrule
+
+\endfirsthead
+
+\toprule
+
+\textbf{ID} &
+\textbf{Rischio iniziale} &
+\textbf{Impact residuo} &
+\textbf{Likelihood residua} &
+\textbf{Rischio residuo} \\
+
+\midrule
+
+\endhead
+
+\multicolumn{5}{r}{\footnotesize Continua nella pagina successiva} \\
+\endfoot
+
+\endlastfoot
+
+
+FM01.4 &
+Molto alto &
+Alto &
+Media &
+Alto \\
+
+\midrule
+
+FM13.1 &
+Alto &
+Medio &
+Bassa &
+Basso \\
+
+\midrule
+
+FM20.3 &
+Alto &
+Alto &
+Bassa &
+Medio \\
+
+\midrule
+
+FM21.5 &
+Alto &
+Alto &
+Bassa &
+Medio \\
+
+\bottomrule
+
+\caption{Valutazione del rischio residuo delle minacce analizzate}
+
+\label{tab:rischio-residuo}\\
+
+\end{xltabular}
+}
+
+Per FM01.4 la Likelihood viene ridotta da Alta a Media. La protezione degli endpoint e dei canali di trasferimento, la normalizzazione dell'immagine e i
+controlli applicati al ramo multimodale rendono più difficile completare i percorsi di attacco individuati. L'Impact rimane Alto, poiché un input
+avversariale capace di superare tali controlli può ancora influenzare più stadi della pipeline e contribuire a una priorità clinica non corretta. Il rischio
+residuo viene quindi valutato come Alto.
+
+Per FM13.1 la Likelihood viene ridotta da Media a Bassa grazie ai controlli sull'inserimento, sulla modifica e sulla selezione dei feedback destinati
+all'aggiornamento. L'Impact residuo viene valutato come Medio, poiché la validazione delle nuove versioni dei prompt, il versionamento e la possibilità
+di rollback limitano la persistenza e la propagazione di un eventuale contenuto contaminato. Il rischio residuo viene pertanto valutato come Basso.
+
+Per FM20.3 la Likelihood viene ridotta da Media a Bassa. La protezione del codice e dei parametri decisionali, insieme a code review, test automatici,
+firma degli artefatti e controllo delle versioni, rende più difficile introdurre e attivare una logica di mapping alterata senza rilevazione.
+L'Impact rimane Alto, poiché una compromissione riuscita può modificare sistematicamente la priorità clinica e le relative indicazioni operative. Il
+rischio residuo viene quindi valutato come Medio.
+
+Per FM21.5 la Likelihood viene ridotta da Media a Bassa. Autenticazione forte, autorizzazione sulle singole risorse, protezione dello storage e cifratura
+delle comunicazioni riducono i principali percorsi di accesso non autorizzato ai dati clinici. L'Impact rimane Alto per la sensibilità delle informazioni e
+per la possibile estensione dell'esposizione a più consulti. Il rischio residuo viene quindi valutato come Medio.
+
+La valutazione evidenzia pertanto una riduzione del rischio per tutte le minacce considerate, senza assumere che le relative superfici di attacco
+possano essere completamente eliminate. FM01.4 mantiene il livello residuo più elevato, mentre FM13.1 beneficia anche di misure di contenimento e ripristino
+che ne riducono maggiormente gli effetti nel tempo.
+
+\subsection{Assunzioni, limiti e controlli non pienamente verificabili}
+
+L'analisi è sviluppata assumendo che l'architettura, i flussi di elaborazione,
+le regole decisionali e i meccanismi di aggiornamento descritti nella
+documentazione disponibile rappresentino la configurazione di riferimento di
+DermaTriage. Sono inoltre considerate le interazioni documentate con B4 e i
+componenti interni della pipeline, senza assumere la presenza di ulteriori
+meccanismi autonomi, strumenti esterni o forme di memoria persistente non
+descritte nell'architettura.
+
+La documentazione consente di valutare i principali controlli e le superfici di
+attacco a livello architetturale, ma non permette di verificare completamente
+alcuni aspetti della configurazione operativa. Tra questi rientrano la
+granularità effettiva delle policy di autorizzazione sulle singole risorse, le
+modalità di rotazione e revoca delle credenziali, la configurazione concreta
+dei canali TLS, la cifratura dello storage e dei backup, la protezione dei log,
+l'isolamento dei processi e la configurazione del meccanismo di deploy.
+
+Analogamente, non è possibile determinare dalla sola documentazione
+l'effettiva applicazione di controlli quali MFA, firma degli artefatti,
+verifiche HMAC, audit log append-only, separazione dei privilegi e procedure di
+approvazione delle modifiche. Tali misure sono pertanto considerate nel piano
+di mitigazione come controlli da applicare ai percorsi di attacco individuati,
+mentre la loro efficacia effettiva richiederebbe una verifica della
+configurazione distribuita e delle procedure operative adottate.
+
+Restano inoltre fuori dal perimetro della presente analisi attività di verifica
+dinamica quali penetration test, adversarial testing dei modelli, revisione
+della configurazione runtime e test specifici sull'efficacia dei controlli di
+monitoraggio e rilevazione. Tali attività potrebbero essere utilizzate per
+validare sperimentalmente le ipotesi formulate nel threat model e affinare
+ulteriormente la stima del rischio residuo.
+
+Nel complesso, l'analisi identifica le principali superfici di attacco di
+DermaTriage, ne valuta la priorità, ricostruisce i percorsi necessari alla loro
+realizzazione e associa a ciascuno di essi contromisure coerenti con
+l'architettura analizzata. La valutazione del rischio residuo completa infine
+il processo distinguendo il rischio iniziale dalla criticità che permane dopo
+l'applicazione delle mitigazioni considerate.
