@@ -6,15 +6,16 @@ DermaTriage è integrato con la piattaforma B4 (Social Things), che rappresenta 
 \subsection{Ambito del sistema e integrazione con B4}
 L'interazione con il paziente avviene attraverso la piattaforma B4, che raccoglie le informazioni necessarie per avviare il processo di triage. Nel flusso principale vengono acquisiti un'immagine della lesione cutanea, l'età del paziente, il sesso e la localizzazione anatomica della lesione. A questi dati possono aggiungersi informazioni relative alla sintomatologia, tra cui prurito, sanguinamento, crescita della lesione, cambiamenti morfologici e dolore.
 
+Qualora non sia disponibile un'immagine utilizzabile, DermaTriage prevede inoltre un percorso di fallback basato sui soli dati sintomatologici raccolti tramite B4. In questo caso l'urgenza viene stimata senza ricorrere alla normale pipeline image-based, consentendo comunque di produrre una valutazione preliminare del caso.
+
 Una volta raccolti i dati, DermaTriage accede alle informazioni associate alla richiesta attraverso le API messe a disposizione da B4. Il servizio può recuperare i consulti disponibili, individuare i documenti associati e scaricare l'immagine dermatologica necessaria all'elaborazione. Al termine della pipeline diagnostica, il risultato viene restituito a B4 e associato alla relativa richiesta di triage. La successiva validazione da parte del personale medico permette di ottenere un riscontro sull'esito prodotto dal
 sistema. Tali informazioni possono essere recuperate da DermaTriage e alimentare i meccanismi di aggiornamento del sistema, che comprendono l'evoluzione dei prompt e il retraining del classificatore EfficientNet-B4.
 
 La comunicazione tra DermaTriage e B4 avviene tramite API REST protette da autenticazione. L'accesso ai servizi B4 utilizza un Bearer JWT ottenuto tramite l'endpoint \texttt{/api/v1/auth/token}; la gestione del token è affidata al componente \texttt{B4Auth}, che ne esegue il rinnovo automatico alla scadenza. I parametri necessari all'integrazione, tra cui credenziali, API key e indirizzo del servizio B4, sono configurati mediante variabili d'ambiente dedicate.
 
-Il flusso integrato viene avviato attraverso l'endpoint \texttt{POST /diagnose}, al quale viene fornito un \texttt{consulto\_id} come riferimento alla richiesta da elaborare. L'accesso a questo endpoint richiede l'header \texttt{X-API-Key}, utilizzato
-anche per le funzionalità amministrative relative alla validazione delle diagnosi, alla gestione dei prompt e al retraining dei modelli.
+Il flusso integrato viene avviato attraverso l'endpoint \texttt{POST /diagnose}, al quale viene fornito un \texttt{consulto\_id} come riferimento alla richiesta da elaborare. L'accesso a questo endpoint richiede l'header \texttt{X-API-Key}, utilizzato anche per le funzionalità amministrative relative alla validazione delle diagnosi, alla gestione dei prompt e al retraining dei modelli.
 
-Accanto al percorso integrato con B4, DermaTriage espone anche \texttt{POST /analyze}, che permette di avviare direttamente la pipeline fornendo un'immagine JPEG o PNG insieme a età, sesso e localizzazione. Questo secondo percorso consente quindi di utilizzare il motore diagnostico anche senza partire da una richiesta già presente sulla piattaforma B4.
+Accanto al percorso integrato con B4, DermaTriage espone anche \texttt{POST /analyze}, che permette di avviare direttamente la pipeline fornendo un'immagine JPEG o PNG insieme a età, sesso e localizzazione. A differenza di \texttt{/diagnose}, l'accesso a questo endpoint non richiede l'header \texttt{X-API-Key}. Questo secondo percorso consente quindi di utilizzare il motore diagnostico anche senza partire da una richiesta già presente sulla piattaforma B4.
 
 Dal punto di vista architetturale, B4 e DermaTriage mantengono ruoli distinti. B4 gestisce l'interazione iniziale con il paziente e rende disponibili i dati necessari al processo di triage, mentre DermaTriage esegue l'elaborazione diagnostica e gestisce i meccanismi di aggiornamento dei modelli. L'integrazione tra i due sistemi è quindi bidirezionale e accompagna il caso clinico dalla fase di acquisizione fino alla restituzione e alla successiva validazione del risultato.
 
@@ -56,7 +57,7 @@ La Figura~\ref{fig:architettura-dermatriage} riassume i principali componenti de
 
 \begin{figure}[ht]
   \centering
-  \includegraphics[width=0.85\linewidth]{../Immagini/Architettura del sistema.jpeg}
+  \includegraphics[width=1\linewidth]{../Immagini/Architettura DermaTriage.png}
   \caption{Architettura logica di DermaTriage e flusso principale di elaborazione}
   \label{fig:architettura-dermatriage}
 \end{figure}

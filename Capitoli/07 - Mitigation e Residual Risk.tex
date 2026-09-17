@@ -530,64 +530,28 @@ Medio \\
 \end{xltabular}
 }
 
-Per FM01.4 la Likelihood viene ridotta da Alta a Media. La protezione degli endpoint e dei canali di trasferimento, la normalizzazione dell'immagine e i
-controlli applicati al ramo multimodale rendono più difficile completare i percorsi di attacco individuati. L'Impact rimane Alto, poiché un input
-avversariale capace di superare tali controlli può ancora influenzare più stadi della pipeline e contribuire a una priorità clinica non corretta. Il rischio
-residuo viene quindi valutato come Alto.
+Per FM01.4 la Likelihood viene ridotta da Alta a Media. La protezione degli endpoint e dei canali di trasferimento, la normalizzazione dell'immagine e i controlli applicati al ramo multimodale rendono più difficile completare i percorsi di attacco individuati. L'Impact rimane Alto, poiché un input avversariale capace di superare tali controlli può ancora influenzare più stadi della pipeline e contribuire a una priorità clinica non corretta. Il rischio residuo viene quindi valutato come Alto.
 
-Per FM13.1 la Likelihood viene ridotta da Media a Bassa grazie ai controlli sull'inserimento, sulla modifica e sulla selezione dei feedback destinati
-all'aggiornamento. L'Impact residuo viene valutato come Medio, poiché la validazione delle nuove versioni dei prompt, il versionamento e la possibilità
-di rollback limitano la persistenza e la propagazione di un eventuale contenuto contaminato. Il rischio residuo viene pertanto valutato come Basso.
+Per FM13.1 la Likelihood viene ridotta da Media a Bassa grazie ai controlli sull'inserimento, sulla modifica e sulla selezione dei feedback destinati all'aggiornamento. L'Impact residuo viene valutato come Medio, poiché la validazione delle nuove versioni dei prompt, il versionamento e la possibilità di rollback limitano la persistenza e la propagazione di un eventuale contenuto contaminato. Il rischio residuo viene pertanto valutato come Basso.
 
-Per FM20.3 la Likelihood viene ridotta da Media a Bassa. La protezione del codice e dei parametri decisionali, insieme a code review, test automatici,
-firma degli artefatti e controllo delle versioni, rende più difficile introdurre e attivare una logica di mapping alterata senza rilevazione.
-L'Impact rimane Alto, poiché una compromissione riuscita può modificare sistematicamente la priorità clinica e le relative indicazioni operative. Il
-rischio residuo viene quindi valutato come Medio.
+Per FM20.3 la Likelihood viene ridotta da Media a Bassa. La protezione del codice e dei parametri decisionali, insieme a code review, test automatici, firma degli artefatti e controllo delle versioni, rende più difficile introdurre e attivare una logica di mapping alterata senza rilevazione. L'Impact rimane Alto, poiché una compromissione riuscita può modificare sistematicamente la priorità clinica e le relative indicazioni operative. Il rischio residuo viene quindi valutato come Medio.
 
-Per FM21.5 la Likelihood viene ridotta da Media a Bassa. Autenticazione forte, autorizzazione sulle singole risorse, protezione dello storage e cifratura
-delle comunicazioni riducono i principali percorsi di accesso non autorizzato ai dati clinici. L'Impact rimane Alto per la sensibilità delle informazioni e
-per la possibile estensione dell'esposizione a più consulti. Il rischio residuo viene quindi valutato come Medio.
+Per FM21.5 la Likelihood viene ridotta da Media a Bassa. Autenticazione forte, autorizzazione sulle singole risorse, protezione dello storage e cifratura delle comunicazioni riducono i principali percorsi di accesso non autorizzato ai dati clinici. L'Impact rimane Alto per la sensibilità delle informazioni e per la possibile estensione dell'esposizione a più consulti. Il rischio residuo viene quindi valutato come Medio.
 
-La valutazione evidenzia pertanto una riduzione del rischio per tutte le minacce considerate, senza assumere che le relative superfici di attacco
-possano essere completamente eliminate. FM01.4 mantiene il livello residuo più elevato, mentre FM13.1 beneficia anche di misure di contenimento e ripristino
-che ne riducono maggiormente gli effetti nel tempo.
+La valutazione evidenzia pertanto una riduzione del rischio per tutte le minacce considerate, senza assumere che le relative superfici di attacco possano essere completamente eliminate. FM01.4 mantiene il livello residuo più elevato, mentre FM13.1 beneficia anche di misure di contenimento e ripristino che ne riducono maggiormente gli effetti nel tempo.
 
 \subsection{Assunzioni, limiti e controlli non pienamente verificabili}
+L'analisi è sviluppata assumendo che l'architettura, i flussi di elaborazione, le regole decisionali e i meccanismi di aggiornamento descritti nella documentazione disponibile rappresentino la configurazione di riferimento di DermaTriage. Sono inoltre considerate le interazioni documentate con B4 e i componenti interni della pipeline, senza assumere la presenza di ulteriori meccanismi autonomi, strumenti esterni o forme di memoria persistente non descritte nell'architettura.
 
-L'analisi è sviluppata assumendo che l'architettura, i flussi di elaborazione,
-le regole decisionali e i meccanismi di aggiornamento descritti nella
-documentazione disponibile rappresentino la configurazione di riferimento di
-DermaTriage. Sono inoltre considerate le interazioni documentate con B4 e i
-componenti interni della pipeline, senza assumere la presenza di ulteriori
-meccanismi autonomi, strumenti esterni o forme di memoria persistente non
-descritte nell'architettura.
+La documentazione consente di valutare i principali controlli e le superfici di attacco a livello architetturale, ma non permette di verificare completamente alcuni aspetti della configurazione operativa. Tra questi rientrano la granularità effettiva delle policy di autorizzazione sulle singole risorse, le modalità di rotazione e revoca delle credenziali, la configurazione concreta dei canali TLS, la cifratura dello storage e dei backup, la protezione dei log, l'isolamento dei processi e la configurazione del meccanismo di deploy.
 
-La documentazione consente di valutare i principali controlli e le superfici di
-attacco a livello architetturale, ma non permette di verificare completamente
-alcuni aspetti della configurazione operativa. Tra questi rientrano la
-granularità effettiva delle policy di autorizzazione sulle singole risorse, le
-modalità di rotazione e revoca delle credenziali, la configurazione concreta
-dei canali TLS, la cifratura dello storage e dei backup, la protezione dei log,
-l'isolamento dei processi e la configurazione del meccanismo di deploy.
+Analogamente, non è possibile determinare dalla sola documentazione l'effettiva applicazione di controlli quali MFA, firma degli artefatti, verifiche HMAC, audit log append-only, separazione dei privilegi e procedure di approvazione delle modifiche. Tali misure sono pertanto considerate nel piano di mitigazione come controlli da applicare ai percorsi di attacco individuati, mentre la loro efficacia effettiva richiederebbe una verifica della configurazione distribuita e delle procedure operative adottate.
 
-Analogamente, non è possibile determinare dalla sola documentazione
-l'effettiva applicazione di controlli quali MFA, firma degli artefatti,
-verifiche HMAC, audit log append-only, separazione dei privilegi e procedure di
-approvazione delle modifiche. Tali misure sono pertanto considerate nel piano
-di mitigazione come controlli da applicare ai percorsi di attacco individuati,
-mentre la loro efficacia effettiva richiederebbe una verifica della
-configurazione distribuita e delle procedure operative adottate.
+Restano inoltre fuori dal perimetro della presente analisi attività di verifica dinamica quali penetration test, adversarial testing dei modelli, revisione della configurazione runtime e test specifici sull'efficacia dei controlli di monitoraggio e rilevazione. Tali attività potrebbero essere utilizzate per validare sperimentalmente le ipotesi formulate nel threat model e affinare ulteriormente la stima del rischio residuo.
 
-Restano inoltre fuori dal perimetro della presente analisi attività di verifica
-dinamica quali penetration test, adversarial testing dei modelli, revisione
-della configurazione runtime e test specifici sull'efficacia dei controlli di
-monitoraggio e rilevazione. Tali attività potrebbero essere utilizzate per
-validare sperimentalmente le ipotesi formulate nel threat model e affinare
-ulteriormente la stima del rischio residuo.
+Un ulteriore limite riguarda le prestazioni documentate del classificatore EfficientNet-B4. La valutazione disponibile riporta una sensibilità sulla classe HIGH pari al 90.24\%, conforme alla soglia prevista, ma evidenzia anche un \textit{False LOW rate} del 7.93\%, superiore al target del 5\%, e un'accuratezza complessiva dell'81.74\%, inferiore al target dell'85\%. Nella matrice di confusione risultano inoltre 24 casi appartenenti alla classe HIGH classificati come LOW, che rappresentano una tipologia di errore particolarmente rilevante nel contesto clinico poiché può contribuire a una sottostima dell'urgenza anche in assenza di una compromissione intenzionale
+del sistema.
 
-Nel complesso, l'analisi identifica le principali superfici di attacco di
-DermaTriage, ne valuta la priorità, ricostruisce i percorsi necessari alla loro
-realizzazione e associa a ciascuno di essi contromisure coerenti con
-l'architettura analizzata. La valutazione del rischio residuo completa infine
-il processo distinguendo il rischio iniziale dalla criticità che permane dopo
-l'applicazione delle mitigazioni considerate.
+La valutazione della classe MEDIUM presenta inoltre una base campionaria più ridotta, pari a 36 casi nel test set, associata a una precisione del 72.5\%. Questi risultati costituiscono limiti prestazionali del modello documentato e devono essere distinti dalle minacce di sicurezza analizzate nei capitoli precedenti: le mitigazioni proposte possono ridurre la probabilità e l'impatto degli attacchi individuati, ma non eliminano gli errori di classificazione intrinseci del modello. Rimane pertanto necessario considerare la possibilità di errori di triage residui anche quando tutti i componenti della pipeline operano secondo il comportamento previsto.
+
+Nel complesso, l'analisi identifica le principali superfici di attacco di DermaTriage, ne valuta la priorità, ricostruisce i percorsi necessari alla loro realizzazione e associa a ciascuno di essi contromisure coerenti con l'architettura analizzata. La valutazione del rischio residuo completa infine il processo distinguendo il rischio iniziale dalla criticità che permane dopo l'applicazione delle mitigazioni considerate.

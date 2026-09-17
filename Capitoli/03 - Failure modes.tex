@@ -3,6 +3,13 @@ La Failure Mode and Effects Analysis (FMEA) è una metodologia utilizzata per id
 
 I failure mode considerati possono derivare sia da condizioni accidentali sia da azioni intenzionali in grado di alterare il normale comportamento dell'asset. L'eventuale corrispondenza con specifiche minacce di sicurezza viene analizzata successivamente mediante STRIDE-AI.
 
+\subsection*{Criteri di selezione degli asset per la FMEA}
+\addcontentsline{toc}{subsection}{Criteri di selezione degli asset per la FMEA}
+La FMEA viene applicata a un sottoinsieme degli asset individuati nel Capitolo 2, selezionati in base alla loro rilevanza nel flusso della pipeline, alla capacità di propagare failure verso altri componenti e al possibile impatto sulla decisione clinica o sui processi di aggiornamento.
+
+Sulla base di tali criteri vengono approfonditi A01 - Immagine dermatologica, A13 - Feedback clinico validato, A16 - Modello EfficientNet-B4, A20 - Regole dell'Adaptation Layer e A21 - Piattaforma B4. Gli altri asset rimangono comunque considerati nel modello architetturale e
+nelle dipendenze complessive del sistema.
+
 % ============================================================
 % A01
 % ============================================================
@@ -838,70 +845,146 @@ Sulla base delle funzioni individuate vengono considerate le principali modalit�
 \subsection{A21 - Piattaforma B4}
 L'asset A21 rappresenta la piattaforma esterna B4, utilizzata come principale punto di interazione tra DermaTriage e il flusso clinico. Attraverso le API messe a disposizione dalla piattaforma, DermaTriage può recuperare i consulti e i relativi documenti, acquisire l'immagine dermatologica necessaria all'elaborazione e restituire il risultato diagnostico prodotto dalla pipeline.
 
-B4 supporta inoltre la gestione delle validazioni mediche associate ai risultati di triage. Gli esiti clinici validati possono essere recuperati a DermaTriage e utilizzati nei meccanismi di aggiornamento del sistema,
+B4 supporta inoltre la gestione delle validazioni mediche associate ai risultati di triage. Gli esiti clinici validati possono essere recuperati da DermaTriage e utilizzati nei meccanismi di aggiornamento del sistema,
 tra cui l'evoluzione dei prompt e il retraining del classificatore EfficientNet-B4. L'accesso alle API B4 avviene mediante autenticazione basata su Bearer JWT.
 
 \subsubsection{Funzioni e prerequisiti}
 Le principali funzioni dell'asset e i prerequisiti necessari al loro svolgimento sono riportati nella Tabella~\ref{tab:a21-functions}.
 
-\begin{table}[H]
-    \centering
-    \small
-    \setstretch{1}
-    \setlength{\tabcolsep}{4pt}
-    \renewcommand{\arraystretch}{1.08}
+% \begin{table}[H]
+%     \centering
+%     \small
+%     \setstretch{1}
+%     \setlength{\tabcolsep}{4pt}
+%     \renewcommand{\arraystretch}{1.08}
 
-    \begin{tabularx}{\textwidth}{
-        >{\raggedright\arraybackslash}p{1.1cm}
-        >{\raggedright\arraybackslash}p{3.8cm}
-        X
-    }
-        \toprule
+%     \begin{tabularx}{\textwidth}{
+%         >{\raggedright\arraybackslash}p{1.1cm}
+%         >{\raggedright\arraybackslash}p{3.8cm}
+%         X
+%     }
+%         \toprule
 
-        \textbf{ID} &
-        \textbf{Funzione} &
-        \textbf{Prerequisiti} \\
+%         \textbf{ID} &
+%         \textbf{Funzione} &
+%         \textbf{Prerequisiti} \\
 
-        \midrule
+%         \midrule
 
-        F21.1 &
-        Raccolta e organizzazione delle informazioni del consulto &
-        Presenza di una richiesta di triage correttamente identificata e
-        associazione coerente tra dati clinici, informazioni demografiche
-        e documenti caricati dal paziente. \\
+%         F21.1 &
+%         Raccolta e organizzazione delle informazioni del consulto &
+%         Presenza di una richiesta di triage correttamente identificata e
+%         associazione coerente tra dati clinici, informazioni demografiche
+%         e documenti caricati dal paziente. \\
 
-        \midrule
+%         \midrule
 
-        F21.2 &
-        Messa a disposizione controllata dei dati necessari a DermaTriage &
-        Presenza sulla piattaforma delle informazioni e dei documenti
-        associati al consulto, disponibilità delle API necessarie al loro
-        recupero e accesso consentito esclusivamente attraverso i meccanismi
-        di autenticazione e autorizzazione previsti. \\
+%         F21.2 &
+%         Messa a disposizione controllata dei dati necessari a DermaTriage &
+%         Presenza sulla piattaforma delle informazioni e dei documenti
+%         associati al consulto, disponibilità delle API necessarie al loro
+%         recupero e accesso consentito esclusivamente attraverso i meccanismi
+%         di autenticazione e autorizzazione previsti. \\
 
-        \midrule
+%         \midrule
 
-        F21.3 &
-        Conservazione del risultato diagnostico e della validazione medica &
-        Corretta identificazione del consulto a cui associare il risultato
-        prodotto da DermaTriage e l'eventuale successiva valutazione del
-        personale medico. \\
+%         F21.3 &
+%         Conservazione del risultato diagnostico e della validazione medica &
+%         Corretta identificazione del consulto a cui associare il risultato
+%         prodotto da DermaTriage e l'eventuale successiva valutazione del
+%         personale medico. \\
 
-        \midrule
+%         \midrule
 
-        F21.4 &
-        Supporto al ciclo di aggiornamento di DermaTriage &
-        Disponibilità di consulti, immagini ed esiti clinici validati
-        utilizzabili dai processi di aggiornamento dei componenti della
-        pipeline. \\
+%         F21.4 &
+%         Supporto al ciclo di aggiornamento di DermaTriage &
+%         Disponibilità di consulti, immagini ed esiti clinici validati
+%         utilizzabili dai processi di aggiornamento dei componenti della
+%         pipeline. \\
 
-        \bottomrule
-    \end{tabularx}
+%         \bottomrule
+%     \end{tabularx}
 
-    \caption{Funzioni e prerequisiti dell'asset A21 - Piattaforma B4.}
-    \label{tab:a21-functions}
-\end{table}
+%     \caption{Funzioni e prerequisiti dell'asset A21 - Piattaforma B4.}
+%     \label{tab:a21-functions}
+% \end{table}
 
+{
+\small
+\setstretch{1}
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.08}
+
+\begin{xltabular}{\textwidth}{
+    >{\raggedright\arraybackslash}p{1.1cm}
+    >{\raggedright\arraybackslash}p{3.8cm}
+    X
+}
+
+\toprule
+
+\textbf{ID} &
+\textbf{Funzione} &
+\textbf{Prerequisiti} \\
+
+\midrule
+
+\endfirsthead
+
+\toprule
+
+\textbf{ID} &
+\textbf{Funzione} &
+\textbf{Prerequisiti} \\
+
+\midrule
+
+\endhead
+
+\multicolumn{3}{r}{\footnotesize Continua nella pagina successiva} \\
+\endfoot
+
+\endlastfoot
+
+
+F21.1 &
+Raccolta e organizzazione delle informazioni del consulto &
+Presenza di una richiesta di triage correttamente identificata e
+associazione coerente tra dati clinici, informazioni demografiche
+e documenti caricati dal paziente. \\
+
+\midrule
+
+F21.2 &
+Messa a disposizione controllata dei dati necessari a DermaTriage &
+Presenza sulla piattaforma delle informazioni e dei documenti
+associati al consulto, disponibilità delle API necessarie al loro
+recupero e accesso consentito esclusivamente attraverso i meccanismi
+di autenticazione e autorizzazione previsti. \\
+
+\midrule
+
+F21.3 &
+Conservazione del risultato diagnostico e della validazione medica &
+Corretta identificazione del consulto a cui associare il risultato
+prodotto da DermaTriage e l'eventuale successiva valutazione del
+personale medico. \\
+
+\midrule
+
+F21.4 &
+Supporto al ciclo di aggiornamento di DermaTriage &
+Disponibilità di consulti, immagini ed esiti clinici validati
+utilizzabili dai processi di aggiornamento dei componenti della
+pipeline. \\
+
+\bottomrule
+
+\caption{Funzioni e prerequisiti dell'asset A21 - Piattaforma B4.}
+\label{tab:a21-functions}\\
+
+\end{xltabular}
+}
 
 \subsubsection{Failure mode}
 Sulla base delle funzioni individuate vengono considerate le principali modalità con cui l'asset A21 può non svolgere correttamente il proprio compito, ovvero i failure mode.
@@ -1017,7 +1100,6 @@ Sulla base delle funzioni individuate vengono considerate le principali modalit�
 \midrule
 \endhead
 
-\midrule
 \multicolumn{4}{r}{\footnotesize Continua nella pagina successiva} \\
 \endfoot
 

@@ -298,6 +298,8 @@ così da concentrare l'attenzione sui failure mode caratterizzati da una critici
 
 Il superamento della soglia RPN non è tuttavia sufficiente. La FMEA comprende infatti sia condizioni accidentali sia failure mode riconducibili a un'azione avversariale, mentre DREAD viene utilizzato per la valutazione delle minacce di sicurezza. Vengono quindi mantenuti soltanto i failure mode per i quali il mapping STRIDE-AI consente di individuare una concreta componente intenzionale riconducibile a una categoria STRIDE. Un failure mode può pertanto presentare un RPN elevato senza essere necessariamente sottoposto a DREAD.
 
+Per evitare valutazioni ridondanti, alcuni failure mode che soddisfano i criteri precedenti non vengono analizzati separatamente quando risultano fortemente sovrapposti ad altre minacce già selezionate. In particolare, FM13.4 non viene valutato tramite DREAD poiché presenta modalità di compromissione ed effetti largamente sovrapponibili a quelli di FM13.1, già considerato come scenario rappresentativo per l'asset A13.
+
 Sulla base di tali criteri vengono sottoposti a DREAD i failure mode FM01.3, FM01.4, FM13.1, FM16.4, FM20.3, FM21.2 e FM21.5.
 
 Per ciascuna minaccia vengono valutati \textit{Damage Potential}, \textit{Reproducibility}, \textit{Exploitability}, \textit{Affected Users} e \textit{Discoverability}. Il punteggio ottenuto viene utilizzato come misura comparativa di priorità e non come valore assoluto del rischio, tenendo conto
